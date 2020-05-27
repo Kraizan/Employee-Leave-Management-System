@@ -1,0 +1,918 @@
+#IMPORTING NECESSARY LIBRARIES
+from tkinter import *
+from tkinter import messagebox
+from tkinter import ttk
+from tkinter import filedialog
+import openpyxl
+import pandas as pd
+import mysql.connector
+import datetime
+
+#DEFINING MAIN WINDOW
+root = Tk()
+root.title("Leave Management System")
+root.minsize(1080,640)
+root.geometry("1560x700")
+
+#SETTING-UP ALL THE GLOBAL VARIABLES
+Emp_Manage_Option = None
+df = None
+Entry_table =None
+leave_entitlement = 15
+entered_name = ""
+noofdays=0
+
+#SWTICHING BETWEEN FRAMES
+def frame_control(frame):
+	global Entry_table
+	if frame == "login":
+		Home_Page.lift()
+	if frame == "leave_man":
+		Leave_management_page.lift()
+	if frame == "entry_tch":
+		Entry_page.lift()
+		Entry_table = "Teaching"
+	if frame == "entry_nontch":
+		Entry_page.lift()
+		Entry_table = "Non-Teaching"
+	if frame == "entry_clsiv":
+		Entry_page.lift()
+		Entry_table = "CLASS IV STAFF"
+	if frame == "emp_man":
+		Emp_management_page.lift()
+
+#DEFINING GENERAL PURPOSE FUNCTIONS OF PROGRAM	
+def submit(parameter):
+	#EMPLOYEE MANAGEMENT
+	global Emp_Manage_Option
+	if parameter == "emp_man":
+
+		emp_type_entry['state']=NORMAL
+		doj = datetime.datetime.strptime(f'{doj_year_var.get()}-{doj_month_var.get()}-{doj_day_var.get()}','%Y-%m-%d')
+		doli = f'{doli_year_var.get()}-{doli_month_var.get()}-{doli_day_var.get()}'
+		doe = f'{doe_year_var.get()}-{doe_month_var.get()}-{doe_day_var.get()}'
+
+		if Emp_Manage_Option == "ADD":
+
+			try:
+				qual = str(qual_entry.get())
+				exp = int(exp_entry.get())
+				salary = int(salary_entry.get())
+				aadhaar = int(aadhaar_entry.get())
+				pan_card = str(pan_card_entry.get())
+
+				mycursor.execute(f'select *from empmanage where id = {emp_id_man_entry.get()}')
+				record = mycursor.fetchall()
+				if record == []:
+					try:
+						if doe == '--' and doli == '--':
+							mycursor.execute(f'insert into empmanage values({emp_id_man_entry.get()},"{add_emp_name_entry.get()}","{add_designation_entry.get()}","{emp_type_entry_var.get()}","{doj}","{qual}",{exp},{salary},NULL,"{aadhaar}","{pan_card}",NULL)')
+						elif doe == '--' and doli != '--':
+							doli = datetime.datetime.strptime(f'{doli_year_var.get()}-{doli_month_var.get()}-{doli_day_var.get()}','%Y-%m-%d')
+							mycursor.execute(f'insert into empmanage values({emp_id_man_entry.get()},"{add_emp_name_entry.get()}","{add_designation_entry.get()}","{emp_type_entry_var.get()}","{doj}","{qual}",{exp},{salary},"{doli}","{aadhaar}","{pan_card}",NULL)')				
+						elif doe != '--' and doli == '--':
+							doe = datetime.datetime.strptime(f'{doe_year_var.get()}-{doe_month_var.get()}-{doe_day_var.get()}','%Y-%m-%d')
+							mycursor.execute(f'insert into empmanage values({emp_id_man_entry.get()},"{add_emp_name_entry.get()}","{add_designation_entry.get()}","{emp_type_entry_var.get()}","{doj}","{qual}",{exp},{salary},NULL,"{aadhaar}","{pan_card}","{doe}")')
+						else:
+							doli = datetime.datetime.strptime(f'{doli_year_var.get()}-{doli_month_var.get()}-{doli_day_var.get()}','%Y-%m-%d')
+							doe = datetime.datetime.strptime(f'{doe_year_var.get()}-{doe_month_var.get()}-{doe_day_var.get()}','%Y-%m-%d')
+							mycursor.execute(f'insert into empmanage values({emp_id_man_entry.get()},"{add_emp_name_entry.get()}","{add_designation_entry.get()}","{emp_type_entry_var.get()}","{doj}","{qual}",{exp},{salary},"{doli}","{aadhaar}","{pan_card}","{doe}")')
+						mydb.commit()
+						clear("emp_man")
+					except:
+						messagebox.showwarning("WARNING", "Could Not Add Details!")
+						clear("emp_man")
+				else:
+					messagebox.showerror('ERROR', "Record Already Exists For Entered ID!")
+			except:
+				messagebox.showerror('ERROR','Invalid Details Entered!')
+		elif Emp_Manage_Option == "EDIT":
+			yesno = messagebox.askyesno('CONFIRM', 'Save Changes ?')
+			if yesno:
+				try:
+					if doe == '--' and doli == '--':
+						mycursor.execute(f'update empmanage set name = "{emp_man_name_var.get()}", des = "{emp_man_des_var.get()}", emp_type = "{emp_type_entry_var.get()}", qual="{emp_man_qual_var.get()}", exp={emp_man_exp_var.get()}, salary = {emp_man_sal_var.get()},aadhaar = "{emp_man_aad_var.get()}", pan_card = "{emp_man_pan_var.get()}", doj= "{doj}", doli=NULL,doe=NULL where id = {emp_id_man_entry.get()}')
+					elif doe != '--' and doli == '--':
+						mycursor.execute(f'update empmanage set name = "{emp_man_name_var.get()}", des = "{emp_man_des_var.get()}", emp_type = "{emp_type_entry_var.get()}", qual="{emp_man_qual_var.get()}", exp={emp_man_exp_var.get()}, salary = {emp_man_sal_var.get()},aadhaar = "{emp_man_aad_var.get()}", pan_card = "{emp_man_pan_var.get()}", doj= "{doj}", doli=NULL,doe="{doe}" where id = {emp_id_man_entry.get()}')
+					elif doe == '--' and doli != '--':
+						mycursor.execute(f'update empmanage set name = "{emp_man_name_var.get()}", des = "{emp_man_des_var.get()}", emp_type = "{emp_type_entry_var.get()}", qual="{emp_man_qual_var.get()}", exp={emp_man_exp_var.get()}, salary = {emp_man_sal_var.get()},aadhaar = "{emp_man_aad_var.get()}", pan_card = "{emp_man_pan_var.get()}", doj= "{doj}", doli="{doli}",doe=NULL where id = {emp_id_man_entry.get()}')
+					else:
+						mycursor.execute(f'update empmanage set name = "{emp_man_name_var.get()}", des = "{emp_man_des_var.get()}", emp_type = "{emp_type_entry_var.get()}", qual="{emp_man_qual_var.get()}", exp={emp_man_exp_var.get()}, salary = {emp_man_sal_var.get()},aadhaar = "{emp_man_aad_var.get()}", pan_card = "{emp_man_pan_var.get()}", doj= "{doj}", doli="{doli}",doe="{doe}" where id = {emp_id_man_entry.get()}')
+					mydb.commit()
+					clear("emp_man")
+				except:
+					messagebox.showwarning('WARNING',"Could Not Save Changes!")
+			else:
+				clear("emp_man")
+
+		elif Emp_Manage_Option == "DEL":
+			yesno = messagebox.askyesno('CONFIRM', 'Are You Sure ?\nRecord shall be permanently deleted!')
+			if yesno:
+				try:					
+					mycursor.execute(f'delete from empmanage where id = {emp_id_man_entry.get()}')
+					enable_fields()
+					clear("emp_man")
+					disable_fields()
+					mydb.commit()				
+				except:
+					messagebox.showwarning("WARNING", "Unknown Error Occured!")
+					clear("emp_man")
+			else:
+				enable_fields()
+				clear('emp_man')
+				disable_fields()
+		else:
+			messagebox.showinfo("Info", "No Option Selected!")
+
+		emp_type_entry['state']=DISABLED
+
+
+	if parameter == "leave_entry":
+		global emp_id
+		global emp_name
+		global emp_designation
+		global doa
+		global leave_frm
+		global leave_to
+		global noofdays
+		global reason_leave
+		global leave_entitlement
+		global l_av
+		global nod
+		global Entry_table
+
+		def insert_row():
+			mycursor.execute(f'insert into leave_details values({emp_id},"{emp_name}","{emp_designation}","{Entry_table}","{doa}","{leave_frm}","{leave_to}",{noofdays},{leave_entitlement},{leave_av},{leave_bal},"{reason_leave}")')
+			mydb.commit()
+
+		emp_id = int(emp_id_entry.get())
+		emp_name = str(emp_name_entry.get())
+		emp_designation = str(emp_designation_entry.get())
+		doa = f'{doa_year_var.get()}-{doa_month_var.get()}-{doa_day_var.get()}'
+		leave_frm = f'{leave_frm_year_var.get()}-{leave_frm_month_var.get()}-{leave_frm_day_var.get()}'
+		leave_to = f'{leave_to_year_var.get()}-{leave_to_month_var.get()}-{leave_to_day_var.get()}'
+		reason_leave = reason_leave_entry.get()
+		noofdays = int(f'{entered_nod.get()}')
+		leave_av = int(l_av) + noofdays
+		leave_bal = int(leave_entitlement) - int(leave_av)
+		
+		if leave_bal <0:
+			messagebox.showwarning('WARNING',"Insufficient Leave Balance!\nWill be treated as Leave Without Pay!")
+		insert_row()
+		clear("submit")
+
+def back(parameter):
+
+	if parameter == "Emp_man":
+		clear("emp_man")
+		Emp_management_page.lower()
+
+	if parameter == "Emp_man_display":
+		Emp_Man_Display_Page.lower()
+
+	if parameter == "emp_entry":
+		clear("emp_man")
+		Emp_entry_page.lower()
+
+	if parameter == "Leave_man_page":
+		Leave_management_page.lower()
+
+	if parameter == "Entry_page":
+		clear("submit")
+		Entry_page.lower()
+
+	if parameter == "Display_page":
+		Display_Page.lower()
+
+
+def clear(parameter):
+
+	if parameter == "emp_man":
+		emp_type_entry['state']=NORMAL
+		emp_type_entry.delete(0,END)
+		emp_type_entry['state']=DISABLED
+		emp_id_man_entry.delete(0,END)
+		add_emp_name_entry.delete(0,END)
+		add_designation_entry.delete(0,END)
+		qual_entry.delete(0,END)
+		exp_entry.delete(0,END)
+		salary_entry.delete(0,END)
+		aadhaar_entry.delete(0,END)
+		pan_card_entry.delete(0,END)
+		doj_year_var.set("2020")
+		doli_year_var.set("")
+		doe_year_var.set("")
+		doj_month_var.set("1")
+		doli_month_var.set("")
+		doe_month_var.set("")
+		doj_day_var.set("1")
+		doli_day_var.set("")
+		doe_day_var.set("")
+
+	if parameter == "submit":
+		emp_id_entry.delete(0,END)
+		entered_name.set("")
+		entered_designation.set("")
+		entered_nod.set("")
+		reason_leave_entry.delete(0,END)
+		doa_year_var.set("2020")
+		leave_frm_year_var.set("2020")
+		leave_to_year_var.set("2020")
+		doa_month_var.set("1")
+		leave_frm_month_var.set("1")
+		leave_to_month_var.set("1")
+		doa_day_var.set("1")
+		leave_frm_day_var.set("1")
+		leave_to_day_var.set("1")
+		entered_lav.set("Leave Availed")
+		entered_lbal.set("Leave Balance")
+
+#FUNCTIONS FOR EMPLOYEE MANAGEMENT PAGE
+def add_emp():
+	Emp_entry_page.lift()
+	global Emp_Manage_Option
+	Emp_Manage_Option = "ADD"
+	enable_fields()
+
+	
+def edit_emp():
+	Emp_entry_page.lift()
+	global Emp_Manage_Option
+	Emp_Manage_Option = "EDIT"
+	disable_fields()
+	
+def remove_emp():
+	Emp_entry_page.lift()
+	global Emp_Manage_Option
+	Emp_Manage_Option = "DEL"
+	disable_fields()
+
+def callback(*args):
+	emp_type_entry['state']=NORMAL
+	emp_type_entry_var.set(emp_type_var.get())
+	emp_type_var.set("Employee Type")
+	emp_type_entry['state']=DISABLED
+
+def disable_fields():			
+	add_emp_name_entry["state"] = DISABLED
+	add_designation_entry["state"] = DISABLED
+	emp_type_btn.configure(state=DISABLED)
+	qual_entry["state"] = DISABLED
+	exp_entry["state"] = DISABLED
+	salary_entry["state"] = DISABLED
+	aadhaar_entry["state"] = DISABLED
+	pan_card_entry["state"] = DISABLED
+
+def enable_fields():
+	emp_id_man_entry["state"] = NORMAL
+	add_emp_name_entry["state"] = NORMAL
+	add_designation_entry["state"] = NORMAL
+	emp_type_btn.configure(state=NORMAL)
+	qual_entry['state'] = NORMAL
+	exp_entry['state'] = NORMAL
+	salary_entry['state'] = NORMAL
+	aadhaar_entry['state'] = NORMAL
+	pan_card_entry['state'] = NORMAL
+
+def display(parameter):
+	global df
+	global treev
+
+	style = ttk.Style()
+	style.theme_use('clam')
+	style.configure("mystyle.Treeview", font=('Calibri', 14), rowheight=50)
+	style.configure("mystyle.Treeview.Heading", font=('Calibri', 18,'bold'))
+
+	#EMPLOYEE MANAGEMENT TABLE DISPLAY
+	if parameter == "Emp_list":
+		
+		Emp_Man_Display_Page.lift()
+		mycursor.execute("select * from empmanage")
+		data = mycursor.fetchall()
+		df = pd.DataFrame(data,columns=[
+			"ID","NAME","DESIGNATION","EMPLOYEE TYPE",
+			"DATE OF JOINING", "QUALIFICATIONS",
+			"EXPERIENCE","SALARY","DATE OF LAST INCREMENT",
+			"AADHAAR NO.","PAN CARD NO.","DATE OF EXIT"])
+		cap_col = ['NAME',"DESIGNATION"]
+		for col in cap_col:
+			df[col] = df[col].str.upper()
+
+		treev = ttk.Treeview(Emp_Man_Display_Page, columns=df.columns.values, selectmode='browse', style="mystyle.Treeview",show=['headings'])
+		vsb = Scrollbar(Emp_Man_Display_Page, orient="vertical", command=treev.yview)
+		vsb.place(relx=0.981,rely=0.0,relheight=0.85)
+		hsb = Scrollbar(Emp_Man_Display_Page, orient="horizontal", command=treev.xview)
+		hsb.place(relx=0.005,rely=0.85,relwidth=0.97)
+		treev.configure(xscrollcommand=hsb.set,yscrollcommand=vsb.set)
+		treev.place(relx=0.005, rely=0.0, relheight=0.85,relwidth=0.975)
+
+		treev['columns']=("0","1","2","3","4","5","6","7","8","9","10","11")
+		treev.heading("0", text="ID")
+		treev.heading("1", text="NAME")
+		treev.heading("2", text="DESIGNATION")
+		treev.heading("3", text="EMP_TYPE")
+		treev.heading("4", text="DATE OF JOINING")
+		treev.heading("5", text="QUALIFICATIONS")
+		treev.heading("6", text="EXPERIENCE")
+		treev.heading("7", text="SALARY")
+		treev.heading("8", text="DATE OF LAST INCREMENT")
+		treev.heading("9", text="AADHAAR NO.")
+		treev.heading("10", text="PAN CARD NO.")
+		treev.heading("11", text="DATE OF EXIT")
+
+		treev.column("0", minwidth=50,width=80)
+		treev.column("1", minwidth=100,width=200)
+		treev.column("2", minwidth=100,width=200)
+		treev.column("3", minwidth=100,width=200)
+		treev.column("4", minwidth=100,width=200)
+		treev.column("5", minwidth=100,width=275)
+		treev.column("6", minwidth=100,width=200)
+		treev.column("8", minwidth=100,width=275)
+		treev.column("7", minwidth=100,width=200)
+		treev.column("9", minwidth=100,width=200)
+		treev.column("10", minwidth=100,width=200)
+		treev.column("11", minwidth=100,width=200)
+
+		Update_Table("emp_man")
+	
+	#LEAVE ENTRIES RECORD
+	if parameter == "leaves_entered":
+
+		Display_Page.lift()
+		mycursor.execute("select emp_id,name,designation,emp_type,doa,leave_frm,leave_to,noofdays,leave_ent,leave_av,leave_bal from leave_details")
+		data = mycursor.fetchall()
+		df = pd.DataFrame(data,columns=["ID","NAME","DESIGNATION","EMPLOYEE TYPE","Date Of Application", "Leave From", "Leave To", "Leaves Entitled", "No. of Days", "Leaves Availed", "Leave Balance"])
+		cap_col = ['NAME',"DESIGNATION"]
+		for col in cap_col:
+			df[col] = df[col].str.upper()
+
+		treev = ttk.Treeview(Display_Page, columns=df.columns.values, selectmode='browse', style="mystyle.Treeview",show=['headings'])
+		vsb = Scrollbar(Display_Page, orient="vertical", command=treev.yview)
+		vsb.place(relx=0.981,rely=0.0,relheight=0.85)
+		hsb = Scrollbar(Display_Page, orient="horizontal", command=treev.xview)
+		hsb.place(relx=0.005,rely=0.85,relwidth=0.97)
+		treev.configure(xscrollcommand=hsb.set,yscrollcommand=vsb.set)
+		treev.place(relx=0.005, rely=0.0, relheight=0.85,relwidth=0.975)
+		treev['columns']=("0","1","2","3","4","5","6","7","8","9","10")
+
+		treev.heading("0", text="ID")
+		treev.heading("1", text="NAME")
+		treev.heading("2", text="DESIGNATION")
+		treev.heading("3", text="EMP_TYPE")
+		treev.heading("4", text="Date Of Application")
+		treev.heading("5", text="Leave From")
+		treev.heading("6", text="Leave To")
+		treev.heading("8", text="Leaves Entitled")
+		treev.heading("7", text="No. of Days")
+		treev.heading("9", text="Leaves Availed")
+		treev.heading("10", text="Leaves Balance")
+
+		treev.column("0", minwidth=50,width=80)
+		treev.column("1", minwidth=100,width=275)
+		treev.column("2", minwidth=100,width=275)
+		treev.column("3", minwidth=100,width=200)
+		treev.column("4", minwidth=100,width=225)
+		treev.column("5", minwidth=100,width=200)
+		treev.column("6", minwidth=100,width=200)
+		treev.column("8", minwidth=100,width=200)
+		treev.column("7", minwidth=100,width=200)
+		treev.column("9", minwidth=100,width=200)
+		treev.column("10", minwidth=100,width=200)
+		
+		Update_Table("leave_details")
+    			
+def Update_Table(parameter):
+
+	rowLabels = df.index.tolist()
+	
+	#EMPLOYEE MANAGEMENT REFRESH
+	def refresh(parameter):		
+		for each_rec in range(len(df)):
+			treev.insert("", 'end', values=list(df.loc[each_rec]))
+		if parameter == "emp_man":
+			length = 12
+		elif parameter == "leave_details":
+			length = 11
+		for i in range(length):
+			treev.column(i,anchor="center")
+		
+	def sorted_display(parameter):
+
+		treev.delete(*treev.get_children())
+
+		if parameter == "Descending":
+			order_by = False
+		else:
+			order_by = True
+		rowLabels = df.index.tolist()
+		df.sort_values([sort_by],ascending=[order_by],inplace=True)
+		for i in range(len(df)):
+    			treev.insert('',i, text=rowLabels[i], values=df.iloc[i,:].tolist())
+
+	if parameter == "emp_man":
+		refresh("emp_man")
+
+	elif parameter == "emp_man_sort":		
+		sort_by = emp_man_sort_var.get()
+		order_by = emp_man_order_var.get()
+		sorted_display(order_by)
+
+	elif parameter == "leave_details":
+		refresh("leave_details")
+
+	elif parameter == "leave_details_sort":
+		sort_by = sort_var.get()
+		order_by = sort_type_var.get()
+		sorted_display(order_by)
+
+def autofill(parameter):
+
+	if parameter == "leave_entry":
+		entered_id = emp_id_entry.get()
+		global l_av
+		global l_bal
+		global nod
+		global Entry_table
+
+		def set_values():
+			entered_name.set(name)
+			entered_designation.set(designation)
+			entered_lav.set("Leave Availed : " + str(l_av))
+			entered_lbal.set("Leave Balance : " + str(l_bal))
+
+		mycursor.execute(f'select emp_type from empmanage where id = {entered_id}')
+		stored_type = mycursor.fetchall()
+
+		if stored_type[0][0] == Entry_table:
+			try:
+				l_frm = datetime.datetime.strptime(f'{leave_frm_year_var.get()}-{leave_frm_month_var.get()}-{leave_frm_day_var.get()}','%Y-%m-%d')
+				l_to = datetime.datetime.strptime(f'{leave_to_year_var.get()}-{leave_to_month_var.get()}-{leave_to_day_var.get()}','%Y-%m-%d')
+				nod = (l_to - l_frm).days + 1
+				entered_nod.set(nod)
+			except:
+				messagebox.showwarning("Info", "Invalid Date Entered!")
+
+			try:
+				mycursor.execute(f"select name,des,emp_type from empmanage where id = {entered_id}")
+				autofill_data_2 = mycursor.fetchall()
+				name = str(autofill_data_2[0][0])
+				designation = autofill_data_2[0][1]		
+				Entry_table = autofill_data_2[0][2]
+			except:
+				name = None
+				designation = None
+				messagebox.showerror("ERROR", "No Record Found!")
+
+			try:
+				mycursor.execute(f"select leave_av,leave_bal from leave_details where emp_id = {entered_id} order by leave_bal")
+				autofill_data_1 = mycursor.fetchall()
+				l_av = autofill_data_1[0][0]
+				l_bal = autofill_data_1[0][1]
+
+			except:
+				l_av = 0
+				l_bal = leave_entitlement
+
+			set_values()
+		else:
+			messagebox.showerror('ERROR','Invaid Employee Type!')
+
+
+	if parameter == "emp_man":
+
+		global Emp_Manage_Option
+		global emp_man_name_var
+		global emp_man_des_var
+		global emp_man_qual_var
+		global emp_man_exp_var
+		global emp_man_sal_var
+		global emp_man_aad_var
+		global emp_man_pan_var
+		global emp_type_entry_var
+
+		entered_id = emp_id_man_entry.get()
+
+		if Emp_Manage_Option == "EDIT":
+			enable_fields()
+
+		try:
+			mycursor.execute(f"select * from empmanage where id = {entered_id}")
+			autofill_data = mycursor.fetchall()
+			emp_man_name_var.set(autofill_data[0][1])
+			emp_man_des_var.set(autofill_data[0][2])
+			emp_type_entry_var.set(autofill_data[0][3])
+			emp_man_qual_var.set(autofill_data[0][5])
+			emp_man_exp_var.set(autofill_data[0][6])
+			emp_man_sal_var.set(autofill_data[0][7])
+			emp_man_aad_var.set(autofill_data[0][9]) 
+			emp_man_pan_var.set(autofill_data[0][10])
+
+			doj = str(autofill_data[0][4]).split('-')
+			doli = str(autofill_data[0][8]).split('-')
+			doe = str(autofill_data[0][11]).split('-')
+			
+			doj_year_var.set(doj[0])
+			doj_month_var.set(doj[1])
+			doj_day_var.set(doj[2])
+			
+			if doe == ['None']:
+				doe_year_var.set("")
+				doe_month_var.set("")
+				doe_day_var.set("")
+			else:
+				doe_year_var.set(doe[0])
+				doe_month_var.set(doe[1])
+				doe_day_var.set(doe[2])
+			if doli == ['None']:
+				doli_year_var.set("")
+				doli_month_var.set("")
+				doli_day_var.set("")
+			else:
+				doli_year_var.set(doli[0])
+				doli_month_var.set(doli[1])
+				doli_day_var.set(doli[2])
+		except:
+			messagebox.showwarning("WARNING",'Invalid Details!')
+			clear("emp_man")
+			disable_fields()
+
+def exportExcel():
+	export_file_path = filedialog.asksaveasfilename(defaultextension='.xlsx')
+	df.to_excel (export_file_path, index = False, header=True)
+
+
+#TITLE BAR AND DEVELOPER NAME LABEL			
+titleLabel = Label(root, text=("EMPLOYEE AND LEAVE MANAGEMENT SYSTEM"), pady=10, font=("Ariel Black",36,"bold"), 
+	relief=GROOVE, bd=10, justify=CENTER, bg="#9cc6d2")
+titleLabel.place(relwidth=1, relheight=0.25)
+
+dev_Label = Label(root, text="developed by - Vanshaj Bhatnagar  ", font=("Ariel Black", 14, "italic"),
+	pady=10, justify=LEFT, relief=RAISED , anchor=E, bg="#9cc6d2")
+dev_Label.place(relx=0, rely=0.9, relwidth=1, relheight=0.1)
+
+#LOGIN WINDOW
+main_frame = Frame(root, bg="#c5d4e1")
+main_frame.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
+main_frame.lift()
+
+username  = StringVar(main_frame, value="root")
+user_id = Entry(main_frame, textvariable = username, font=("Book Antiqua", 12), justify=CENTER)
+user_id.place(relx=0.4, rely=0.25, relwidth=0.2, relheight=0.1)
+
+password  = StringVar(main_frame, value="vanshaj24")
+db_password = Entry(main_frame, textvariable = password , font=("Book Antiqua", 12), justify=CENTER)
+db_password.place(relx=0.4, rely=0.4, relwidth=0.2, relheight=0.1)
+
+login_btn = Button(main_frame, text="LOGIN", relief=RAISED, font=("Book Antiqua", 12), command=lambda: frame_control("login"))
+login_btn.place(relx=0.45, rely=0.55, relwidth=0.1, relheight=0.1)
+
+
+#HOME PAGE
+Home_Page = Frame(root, bg="#c5d4e1")
+Home_Page.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
+Home_Page.lower()
+
+#MAIN BUTTONS
+leave_man_btn = Button(Home_Page, text="LEAVE\nMANAGEMENT", relief=RAISED, font=("Book Antiqua", 20, "bold"),justify=CENTER,
+	fg="#2c1396" ,command=lambda: frame_control("leave_man"))
+leave_man_btn.place(relwidth=0.3, relx=0.55, rely=0.4)
+
+emp_man_btn = Button(Home_Page, text="EMPLOYEE\nMANAGEMENT", relief=RAISED, font=("Book Antiqua", 20, "bold"),justify=CENTER,
+	fg="#2c1396" ,command=lambda: frame_control("emp_man"))
+emp_man_btn.place(relwidth=0.3, relx=0.15, rely=0.4)
+
+#EMPLOYEE MANAGEMENT WINDOW
+Emp_management_page = Frame(root, bg="#c5d4e1")
+Emp_management_page.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
+Emp_management_page.lower()
+
+add_emp_btn = Button(Emp_management_page, text="ADD EMPLOYEE", relief=RAISED, font=("Book Antiqua", 20, "bold"),fg="#2c1396",justify=CENTER, command=lambda: add_emp())
+add_emp_btn.place(width=300, relx=0.38, rely=0.15)
+edit_emp_btn = Button(Emp_management_page, text="EDIT DETAILS", relief=RAISED, font=("Book Antiqua", 20, "bold"),fg="#2c1396",justify=CENTER, command=lambda: edit_emp())
+edit_emp_btn.place(width=300, relx=0.38, rely=0.35)
+remove_emp_btn = Button(Emp_management_page, text="REMOVE RECORD", relief=RAISED, font=("Book Antiqua", 20, "bold"),fg="#2c1396",justify=CENTER , command=lambda: remove_emp())
+remove_emp_btn.place(width=300, relx=0.38, rely=0.55)
+back_btn_emp_man = Button(Emp_management_page, text="BACK", relief=RAISED, font=("Book Antiqua", 12), command=lambda: back("Emp_man"))
+back_btn_emp_man.place(relx=0.05, rely=0.875, relwidth=0.14, relheight=0.1)
+display_emp_man = Button(Emp_management_page, text="DISPLAY", relief=RAISED, font=("Book Antiqua", 20, "bold"),fg="#2c1396", command=lambda: display("Emp_list"))
+display_emp_man.place(width=300, relx=0.38, rely=0.75)
+
+Emp_entry_page = Frame(root, bg="#c5d4e1")
+Emp_entry_page.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
+Emp_entry_page.lower()
+
+submit_btn_emp_entry = Button(Emp_entry_page, text="SUBMIT", relief=RAISED, font=("Book Antiqua", 12),justify=CENTER, command=lambda: submit("emp_man"))
+submit_btn_emp_entry.place(relwidth=0.14, relheight=0.1 ,relx=0.81, rely=0.875)
+back_btn_emp_entry = Button(Emp_entry_page, text="BACK", relief=RAISED, font=("Book Antiqua", 12), command=lambda: back("emp_entry"))
+back_btn_emp_entry.place(relx=0.05, rely=0.875, relwidth=0.14, relheight=0.1)
+search_emp_entry = Button(Emp_entry_page, text="SEARCH", relief=RAISED, font=("Book Antiqua", 12), command=lambda: autofill('emp_man'))
+search_emp_entry.place(relwidth=0.14, relheight=0.1, relx=0.43, rely=0.875)
+
+emp_type_var = StringVar()
+emp_type_var.set("Employee Type")
+emp_type_optns = ["Teaching","Non-Teaching","CLASS IV STAFF"]
+emp_type_btn = OptionMenu(Emp_entry_page, emp_type_var, *emp_type_optns)
+emp_type_btn.place(relx=0.02, rely=0.225, relwidth=0.15, relheight=0.1)
+emp_type_btn.configure(state=DISABLED)
+emp_type_var.trace('w', callback)
+emp_type_entry_var = StringVar()
+emp_type_entry = Entry(Emp_entry_page, textvariable=emp_type_entry_var, font=("Book Antiqua", 12), justify=CENTER,state=DISABLED)
+emp_type_entry.place(relx=0.175, rely=0.225, relwidth=0.15, relheight=0.1)
+
+emp_id_man_label = Label(Emp_entry_page, text="Employee ID : ", font=("Book Antiqua", 12), relief=GROOVE,justify=CENTER)
+emp_id_man_label.place(relx=0.02, rely=0.375, relwidth=0.15, relheight=0.1)
+emp_id_man_entry = Entry(Emp_entry_page, font=("Book Antiqua", 12), justify=CENTER, state=NORMAL)
+emp_id_man_entry.place(relx=0.175, rely=0.375, relwidth=0.15, relheight=0.1)
+
+emp_man_name_var = StringVar()
+add_emp_name_label = Label(Emp_entry_page, text="Employee Name : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
+add_emp_name_label.place(relx=0.02, rely=0.525, relwidth=0.15, relheight=0.1)
+add_emp_name_entry = Entry(Emp_entry_page, textvariable=emp_man_name_var,font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
+add_emp_name_entry.place(relx=0.175, rely=0.525, relwidth=0.15, relheight=0.1)
+
+emp_man_des_var = StringVar()
+add_designation_label = Label(Emp_entry_page, text="Designation : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
+add_designation_label.place(relx=0.02, rely=0.675, relwidth=0.15, relheight=0.1)
+add_designation_entry = Entry(Emp_entry_page,textvariable=emp_man_des_var, font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
+add_designation_entry.place(relx=0.175, rely=0.675, relwidth=0.15, relheight=0.1)
+
+doj_year_var = StringVar()
+doj_year_var.set("2020")
+doj_month_var = StringVar()
+doj_month_var.set("1")
+doj_day_var = StringVar()
+doj_day_var.set("1")
+doj_years = {year for year in range(2000,2031)}
+doj_months = {month for month in range(1,13)}
+doj_days = {day for day in range(1,32)}
+
+doj_label = Label(Emp_entry_page, text="Date of Joining : ", font=("Book Antiqua", 12), justify=CENTER)
+doj_label.place(relx=0.35, rely=0.225, relwidth=0.15, relheight=0.1)
+doj_year_opt = OptionMenu(Emp_entry_page, doj_year_var, *doj_years)
+doj_month_opt = OptionMenu(Emp_entry_page, doj_month_var, *doj_months)
+doj_day_opt = OptionMenu(Emp_entry_page, doj_day_var, *doj_days)
+doj_year_opt.place(relx=0.505, rely=0.225, relwidth=0.05, relheight=0.1)
+doj_month_opt.place(relx=0.555, rely=0.225, relwidth=0.05, relheight=0.1)
+doj_day_opt.place(relx=0.605, rely=0.225, relwidth=0.05, relheight=0.1)
+
+emp_man_qual_var = StringVar()
+qual_label = Label(Emp_entry_page, text="Qualification\n(Year of Completion) : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
+qual_label.place(relx=0.35, rely=0.375, relwidth=0.15, relheight=0.1)
+qual_entry = Entry(Emp_entry_page,textvariable=emp_man_qual_var, font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
+qual_entry.place(relx=0.505, rely=0.375, relwidth=0.15, relheight=0.1)
+
+emp_man_exp_var = StringVar()
+exp_label = Label(Emp_entry_page, text="Experience\n(No. of Years) : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
+exp_label.place(relx=0.35, rely=0.525, relwidth=0.15, relheight=0.1)
+exp_entry = Entry(Emp_entry_page, textvariable=emp_man_exp_var,font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
+exp_entry.place(relx=0.505, rely=0.525, relwidth=0.15, relheight=0.1)
+
+emp_man_sal_var = StringVar()
+salary_label = Label(Emp_entry_page, text="Current Salary : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
+salary_label.place(relx=0.35, rely=0.675, relwidth=0.15, relheight=0.1)
+salary_entry = Entry(Emp_entry_page, textvariable=emp_man_sal_var,font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
+salary_entry.place(relx=0.505, rely=0.675, relwidth=0.15, relheight=0.1)
+
+doli_year_var = StringVar()
+doli_year_var.set("")
+doli_month_var = StringVar()
+doli_month_var.set("")
+doli_day_var = StringVar()
+doli_day_var.set("")
+doli_years = {year for year in range(2000,2031)}
+doli_months = {month for month in range(1,13)}
+doli_days = {day for day in range(1,32)}
+
+doli_label = Label(Emp_entry_page, text="Date of Last Increment : ", font=("Book Antiqua", 12), justify=CENTER)
+doli_label.place(relx=0.675, rely=0.225, relwidth=0.15, relheight=0.1)
+doli_year_opt = OptionMenu(Emp_entry_page, doli_year_var, *doli_years)
+doli_month_opt = OptionMenu(Emp_entry_page, doli_month_var, *doli_months)
+doli_day_opt = OptionMenu(Emp_entry_page, doli_day_var, *doli_days)
+doli_year_opt.place(relx=0.83, rely=0.225, relwidth=0.05, relheight=0.1)
+doli_month_opt.place(relx=0.88, rely=0.225, relwidth=0.05, relheight=0.1)
+doli_day_opt.place(relx=0.93, rely=0.225, relwidth=0.05, relheight=0.1)
+
+emp_man_aad_var = StringVar()
+aadhaar_label = Label(Emp_entry_page, text="Aadhaar No. : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
+aadhaar_label.place(relx=0.675, rely=0.375, relwidth=0.15, relheight=0.1)
+aadhaar_entry = Entry(Emp_entry_page, textvariable=emp_man_aad_var,font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
+aadhaar_entry.place(relx=0.83, rely=0.375, relwidth=0.15, relheight=0.1)
+
+emp_man_pan_var = StringVar()
+pan_card_label = Label(Emp_entry_page, text="PAN Card No. : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
+pan_card_label.place(relx=0.675, rely=0.525, relwidth=0.15, relheight=0.1)
+pan_card_entry = Entry(Emp_entry_page, textvariable=emp_man_pan_var,font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
+pan_card_entry.place(relx=0.83, rely=0.525, relwidth=0.15, relheight=0.1)
+
+doe_year_var = StringVar()
+doe_year_var.set("")
+doe_month_var = StringVar()
+doe_month_var.set("")
+doe_day_var = StringVar()
+doe_day_var.set("")
+doe_years = {year for year in range(2000,2031)}
+doe_months = {month for month in range(1,13)}
+doe_days = {day for day in range(1,32)}
+
+doe_label = Label(Emp_entry_page, text="Date of Exit : ", font=("Book Antiqua", 12), justify=CENTER)
+doe_label.place(relx=0.675, rely=0.675, relwidth=0.15, relheight=0.1)
+doe_year_opt = OptionMenu(Emp_entry_page, doe_year_var, *doe_years)
+doe_month_opt = OptionMenu(Emp_entry_page, doe_month_var, *doe_months)
+doe_day_opt = OptionMenu(Emp_entry_page, doe_day_var, *doe_days)
+doe_year_opt.place(relx=0.83, rely=0.675, relwidth=0.05, relheight=0.1)
+doe_month_opt.place(relx=0.88, rely=0.675, relwidth=0.05, relheight=0.1)
+doe_day_opt.place(relx=0.93, rely=0.675, relwidth=0.05, relheight=0.1)
+
+
+#EMPLOYEE MANAGEMENT DISPLAY WINDOW
+Emp_Man_Display_Page = Frame(root, bg="#c5d4e1")
+Emp_Man_Display_Page.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
+Emp_Man_Display_Page.lower()
+
+back_btn_emp_man = Button(Emp_Man_Display_Page, text="BACK", relief=RAISED, font=("Book Antiqua",12), command=lambda: back("Emp_man_display"))
+back_btn_emp_man.place(relx=0.1, rely=0.895, relwidth=0.1, relheight=0.1)
+
+emp_man_sort_var = StringVar()
+emp_man_sort_var.set("ID")
+sorting_parameters = ["ID","NAME","DESIGNATION","EMPLOYEE TYPE","DATE OF JOINING",
+			"EXPERIENCE","SALARY","DATE OF LAST INCREMENT","DATE OF EXIT"]
+emp_man_sort_btn = OptionMenu(Emp_Man_Display_Page, emp_man_sort_var, *sorting_parameters)
+emp_man_sort_btn.place(relx=0.4, rely=0.895, relwidth=0.1, relheight=0.1)
+emp_man_order_var = StringVar()
+emp_man_order_var.set("Sort By")
+order_parameters = ["Ascending", "Descending"]
+emp_man_order_btn = OptionMenu(Emp_Man_Display_Page, emp_man_order_var, *order_parameters)
+emp_man_order_btn.place(relx=0.25, rely=0.895, relwidth=0.1, relheight=0.1)
+
+emp_man_refresh_btn = Button(Emp_Man_Display_Page, text="REFRESH", font=("Book Antiqua", 12), state=NORMAL, command=lambda: Update_Table("emp_man_sort"))
+emp_man_refresh_btn.place(relx=0.55, rely=0.895, relwidth=0.1, relheight=0.1)
+
+export_excel_btn = Button(Emp_Man_Display_Page, text="EXPORT", font=("Book Antiqua", 12), state=NORMAL, command=lambda: exportExcel())
+export_excel_btn.place(relx=0.7, rely=0.895, relwidth=0.1, relheight=0.1)
+
+#LEAVE MANAGEMENT PAGE
+Leave_management_page = Frame(root, bg="#c5d4e1")
+Leave_management_page.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
+Leave_management_page.lower()
+
+teaching_btn = Button(Leave_management_page, text="TEACHING", relief=RAISED, font=("Book Antiqua", 20, "bold"),justify=CENTER,
+	fg="#2c1396" ,command=lambda: frame_control("entry_tch"))
+teaching_btn.place(width=300, relx=0.38, rely=0.15)
+non_teaching_btn = Button(Leave_management_page, text="NON-TEACHING", relief=RAISED, font=("Book Antiqua", 20, "bold"),justify=CENTER,
+	fg="#2c1396" ,command=lambda: frame_control("entry_nontch"))
+non_teaching_btn.place(width=300, relx=0.38, rely=0.35)
+classiv_btn = Button(Leave_management_page, text="CLASS IV STAFF", relief=RAISED, font=("Book Antiqua", 20, "bold"),justify=CENTER,
+	fg="#2c1396" ,command=lambda: frame_control("entry_clsiv"))
+classiv_btn.place(width=300, relx=0.38, rely=0.55)
+display_btn_leaves = Button(Leave_management_page, text="DISPLAY", relief=RAISED, font=("Book Antiqua", 20, "bold"),justify=CENTER,
+	fg="#2c1396" , command=lambda: display("leaves_entered"))
+display_btn_leaves.place(width=300, relx=0.38, rely=0.75)
+
+back_btn_entry = Button(Leave_management_page, text="BACK", relief=RAISED, font=("Book Antiqua", 12), command=lambda: back("Leave_man_page"))
+back_btn_entry.place(relx=0.05, rely=0.85, relwidth=0.1, relheight=0.1)
+
+#LEAVE ENTRY PAGE
+Entry_page = Frame(root, bg="#c5d4e1")
+Entry_page.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
+Entry_page.lower()
+
+submit_btn_entry = Button(Entry_page, text="SUBMIT", relief=RAISED, font=("Book Antiqua", 12), command=lambda: submit("leave_entry"))
+submit_btn_entry.place(relx=0.85, rely=0.85, relwidth=0.1, relheight=0.1)
+
+autofill_btn = Button(Entry_page, text="AUTOFILL", font=("Book Antiqua", 12), state=NORMAL, command=lambda: autofill("leave_entry"))
+autofill_btn.place(relx=0.6, rely=0.85, relwidth=0.2, relheight=0.1)
+
+back_btn_entry = Button(Entry_page, text="BACK", relief=RAISED, font=("Book Antiqua", 12), command=lambda: back("Entry_page"))
+back_btn_entry.place(relx=0.1, rely=0.895, relwidth=0.1, relheight=0.1)
+
+#ENTRY PAGE LABELS AND TEXTBOXES
+doa_year_var = StringVar()
+doa_year_var.set("2020")
+doa_month_var = StringVar()
+doa_month_var.set("1")
+doa_day_var = StringVar()
+doa_day_var.set("1")
+doa_years = {year for year in range(2000,2031)}
+doa_months = {month for month in range(1,13)}
+doa_days = {day for day in range(1,32)}
+
+leave_frm_year_var = StringVar()
+leave_frm_year_var.set("2020")
+leave_frm_month_var = StringVar()
+leave_frm_month_var.set("1")
+leave_frm_day_var = StringVar()
+leave_frm_day_var.set("1")
+leave_frm_years = {year for year in range(2000,2031)}
+leave_frm_months = {month for month in range(1,13)}
+leave_frm_days = {day for day in range(1,32)}
+
+leave_to_year_var = StringVar()
+leave_to_year_var.set("2020")
+leave_to_month_var = StringVar()
+leave_to_month_var.set("1")
+leave_to_day_var = StringVar()
+leave_to_day_var.set("1")
+leave_to_years = {year for year in range(2000,2031)}
+leave_to_months = {month for month in range(1,13)}
+leave_to_days = {day for day in range(1,32)}
+
+emp_id_label = Label(Entry_page, text="Employee ID : ", font=("Book Antiqua", 12), justify=CENTER)
+emp_id_label.place(relx=0.115, rely=0.2, relwidth=0.15, relheight=0.1)
+emp_id_entry = Entry(Entry_page, font=("Book Antiqua", 12), justify=CENTER)
+emp_id_entry.place(relx=0.28, rely=0.2, relwidth=0.2, relheight=0.1)
+
+entered_name = StringVar()
+emp_name_label = Label(Entry_page, text="Name : ", font=("Book Antiqua", 12), justify=CENTER)
+emp_name_label.place(relx=0.115, rely=0.35, relwidth=0.15, relheight=0.1)
+emp_name_entry = Entry(Entry_page, textvariable=entered_name, font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
+emp_name_entry.place(relx=0.28, rely=0.35, relwidth=0.2, relheight=0.1)
+
+entered_designation = StringVar()
+emp_designation_label = Label(Entry_page, text="Designation : ", font=("Book Antiqua", 12), justify=CENTER)
+emp_designation_label.place(relx=0.115, rely=0.5, relwidth=0.15, relheight=0.1)
+emp_designation_entry = Entry(Entry_page,textvariable=entered_designation, font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
+emp_designation_entry.place(relx=0.28, rely=0.5, relwidth=0.2, relheight=0.1)
+
+emp_doa_label = Label(Entry_page, text="Date of Application : ", font=("Book Antiqua", 12), justify=CENTER)
+emp_doa_label.place(relx=0.115, rely=0.65, relwidth=0.15, relheight=0.1)
+doa_year_opt = OptionMenu(Entry_page, doa_year_var, *doa_years)
+doa_month_opt = OptionMenu(Entry_page, doa_month_var, *doa_months)
+doa_day_opt = OptionMenu(Entry_page, doa_day_var, *doa_days)
+doa_year_opt.place(relx=0.28, rely=0.65, relwidth=0.06, relheight=0.1)
+doa_month_opt.place(relx=0.35, rely=0.65, relwidth=0.06, relheight=0.1)
+doa_day_opt.place(relx=0.42, rely=0.65, relwidth=0.06, relheight=0.1)
+
+leave_frm_label = Label(Entry_page, text="Leave From : ", font=("Book Antiqua", 12), justify=CENTER)
+leave_frm_label.place(relx=0.515, rely=0.2, relwidth=0.15, relheight=0.1)
+leave_frm_year_opt = OptionMenu(Entry_page, leave_frm_year_var, *leave_frm_years)
+leave_frm_month_opt = OptionMenu(Entry_page, leave_frm_month_var, *leave_frm_months)
+leave_frm_day_opt = OptionMenu(Entry_page, leave_frm_day_var, *leave_frm_days)
+leave_frm_year_opt.place(relx=0.68, rely=0.2, relwidth=0.06, relheight=0.1)
+leave_frm_month_opt.place(relx=0.75, rely=0.2, relwidth=0.06, relheight=0.1)
+leave_frm_day_opt.place(relx=0.82, rely=0.2, relwidth=0.06, relheight=0.1)
+
+leave_to_label = Label(Entry_page, text="Leave To : ", font=("Book Antiqua", 12), justify=CENTER)
+leave_to_label.place(relx=0.515, rely=0.35, relwidth=0.15, relheight=0.1)
+leave_to_year_opt = OptionMenu(Entry_page, leave_to_year_var, *leave_to_years)
+leave_to_month_opt = OptionMenu(Entry_page, leave_to_month_var, *leave_to_months)
+leave_to_day_opt = OptionMenu(Entry_page, leave_to_day_var, *leave_to_days)
+leave_to_year_opt.place(relx=0.68, rely=0.35, relwidth=0.06, relheight=0.1)
+leave_to_month_opt.place(relx=0.75, rely=0.35, relwidth=0.06, relheight=0.1)
+leave_to_day_opt.place(relx=0.82, rely=0.35, relwidth=0.06, relheight=0.1)
+
+entered_nod = StringVar()
+no_of_days_label = Label(Entry_page, text="No. Of Days : ", font=("Book Antiqua", 12), justify=CENTER)
+no_of_days_label.place(relx=0.515, rely=0.5, relwidth=0.15, relheight=0.1)
+no_of_days_entry = Entry(Entry_page, textvariable=entered_nod, font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
+no_of_days_entry.place(relx=0.68, rely=0.5, relwidth=0.2, relheight=0.1)
+
+reason_leave_label = Label(Entry_page, text="Reason Of Leave : ", font=("Book Antiqua", 12), justify=CENTER)
+reason_leave_label.place(relx=0.515, rely=0.65, relwidth=0.15, relheight=0.1)
+reason_leave_entry = Entry(Entry_page, font=("Book Antiqua", 12), justify=CENTER)
+reason_leave_entry.place(relx=0.68, rely=0.65, relwidth=0.2, relheight=0.1)
+
+leave_entitlement_label = Label(Entry_page, text="Leave Entitlement :   " + str(leave_entitlement), font=("Book Antiqua", 12), justify=LEFT)
+leave_entitlement_label.place(relx=0.05, rely=0.05, relwidth=0.25, relheight=0.1)
+
+entered_lav = StringVar()
+entered_lav.set("Leave Availed")
+leave_availed_label = Label(Entry_page, textvariable=entered_lav, font=("Book Antiqua", 12), justify=LEFT)
+leave_availed_label.place(relx=0.375, rely=0.05, relwidth=0.25, relheight=0.1)
+
+entered_lbal = StringVar()
+entered_lbal.set("Leave Balance")
+leave_balance_label = Label(Entry_page, textvariable=entered_lbal, font=("Book Antiqua", 12), justify=LEFT)
+leave_balance_label.place(relx=0.7, rely=0.05, relwidth=0.25, relheight=0.1)
+
+#DISPLAY LEAVE RECORDS
+Display_Page = Frame(root, bg="#c5d4e1")
+Display_Page.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
+Display_Page.lower()
+
+sort_var = StringVar()
+sort_var.set("ID")
+sorting_parameters_leaves = ["ID","NAME","DESIGNATION","EMPLOYEE TYPE","Date Of Application", "Leave From", "Leave To", "No. of Days", "Leaves Availed", "Leave Balance"]
+sort_btn = OptionMenu(Display_Page, sort_var, *sorting_parameters_leaves)
+sort_btn.place(relx=0.4, rely=0.895, relwidth=0.1, relheight=0.1)
+
+sort_type_var = StringVar()
+sort_type_var.set("Ascending")
+sort_type_optns = ["Ascending","Descending"]
+asc_desc_btn = OptionMenu(Display_Page, sort_type_var, *sort_type_optns)
+asc_desc_btn.place(relx=0.25, rely=0.895, relwidth=0.1, relheight=0.1)
+
+export_excel_btn = Button(Display_Page, text="EXPORT", font=("Book Antiqua", 12), state=NORMAL, command=lambda: exportExcel())
+export_excel_btn.place(relx=0.7, rely=0.895, relwidth=0.1, relheight=0.1)
+
+refresh_btn = Button(Display_Page, text="REFRESH", font=("Book Antiqua", 12), state=NORMAL, command=lambda: Update_Table("leave_details_sort"))
+refresh_btn.place(relx=0.55, rely=0.895, relwidth=0.1, relheight=0.1)
+
+back_btn_display = Button(Display_Page, text="BACK", relief=RAISED, font=("Book Antiqua", 12), command=lambda: back("Display_page"))
+back_btn_display.place(relx=0.1, rely=0.895, relwidth=0.1, relheight=0.1)
+
+#INITIALIZING CONNECTION TO DATABASE AND RUNNING MAINLOOP
+mydb = mysql.connector.connect(host = "localhost", user = user_id.get() , password = db_password.get(), database = "vanshaj")
+mycursor = mydb.cursor()
+mycursor.execute('create table if not exists empmanage(id int(4) not null, name varchar(25) not null, des varchar(40) not null, emp_type varchar(15) not null, doj date not null, qual varchar(40) not null, exp int(2) not null, salary int(7) not null, doli date, aadhaar char(12), pan_card char(10), doe date)')
+mycursor.execute('create table if not exists leave_details(emp_id int(4),name varchar(25),designation varchar(40),emp_type varchar(15),doa date,leave_frm date,leave_to date,noofdays int(3),leave_ent int(3),leave_av int(3),leave_bal int(3),reason_of_leave varchar(50))')
+root.mainloop()
