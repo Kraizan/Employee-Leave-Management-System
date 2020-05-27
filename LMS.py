@@ -41,12 +41,16 @@ def frame_control(frame):
 	if frame == "emp_man":
 		Emp_management_page.lift()
 
-#DEFINING GENERAL PURPOSE FUNCTIONS OF PROGRAM	
+#DEFINING GENERAL PURPOSE FUNCTIONS OF PROGRAM
+
+#FUCTION OF SUBMIT BUTTON
 def submit(parameter):
-	#EMPLOYEE MANAGEMENT
+
+	#FOR EMPLOYEE MANAGEMENT
 	global Emp_Manage_Option
 	if parameter == "emp_man":
 
+		#GETTING THE VALUES FROM TEXTBOXES
 		emp_type_entry['state']=NORMAL
 		doj = datetime.datetime.strptime(f'{doj_year_var.get()}-{doj_month_var.get()}-{doj_day_var.get()}','%Y-%m-%d')
 		doli = f'{doli_year_var.get()}-{doli_month_var.get()}-{doli_day_var.get()}'
@@ -61,10 +65,13 @@ def submit(parameter):
 				aadhaar = int(aadhaar_entry.get())
 				pan_card = str(pan_card_entry.get())
 
+				#CHECKING IF RECORD FOR ENTERED ID ALREADY EXISTS
 				mycursor.execute(f'select *from empmanage where id = {emp_id_man_entry.get()}')
 				record = mycursor.fetchall()
+				#RECORD NOT FOUND, HENCE NEW RECORD CAN BE ENTERED
 				if record == []:
 					try:
+						#CHECKING IF DATE OF LAST INCREMENT AND DATE OF EXIT HAVE BEEN ENTERED OR NOT
 						if doe == '--' and doli == '--':
 							mycursor.execute(f'insert into empmanage values({emp_id_man_entry.get()},"{add_emp_name_entry.get()}","{add_designation_entry.get()}","{emp_type_entry_var.get()}","{doj}","{qual}",{exp},{salary},NULL,"{aadhaar}","{pan_card}",NULL)')
 						elif doe == '--' and doli != '--':
@@ -86,10 +93,13 @@ def submit(parameter):
 					messagebox.showerror('ERROR', "Record Already Exists For Entered ID!")
 			except:
 				messagebox.showerror('ERROR','Invalid Details Entered!')
+		
+		#SUBMIT FUNCTION FOR EDITING DETAILS OF AN EMPLOYEE
 		elif Emp_Manage_Option == "EDIT":
 			yesno = messagebox.askyesno('CONFIRM', 'Save Changes ?')
 			if yesno:
 				try:
+					#CHECKING IF DATE OF LAST INCREMENT AND DATE OF EXIT HAVE BEEN ENTERED OR NOT
 					if doe == '--' and doli == '--':
 						mycursor.execute(f'update empmanage set name = "{emp_man_name_var.get()}", des = "{emp_man_des_var.get()}", emp_type = "{emp_type_entry_var.get()}", qual="{emp_man_qual_var.get()}", exp={emp_man_exp_var.get()}, salary = {emp_man_sal_var.get()},aadhaar = "{emp_man_aad_var.get()}", pan_card = "{emp_man_pan_var.get()}", doj= "{doj}", doli=NULL,doe=NULL where id = {emp_id_man_entry.get()}')
 					elif doe != '--' and doli == '--':
@@ -105,6 +115,7 @@ def submit(parameter):
 			else:
 				clear("emp_man")
 
+		#DELETING RECORD FOR AN EMPLOYEE
 		elif Emp_Manage_Option == "DEL":
 			yesno = messagebox.askyesno('CONFIRM', 'Are You Sure ?\nRecord shall be permanently deleted!')
 			if yesno:
@@ -126,7 +137,7 @@ def submit(parameter):
 
 		emp_type_entry['state']=DISABLED
 
-
+	#ENTERING LEAVE DETAILS
 	if parameter == "leave_entry":
 		global emp_id
 		global emp_name
@@ -145,6 +156,7 @@ def submit(parameter):
 			mycursor.execute(f'insert into leave_details values({emp_id},"{emp_name}","{emp_designation}","{Entry_table}","{doa}","{leave_frm}","{leave_to}",{noofdays},{leave_entitlement},{leave_av},{leave_bal},"{reason_leave}")')
 			mydb.commit()
 
+		#EXTRACTING VALUES
 		emp_id = int(emp_id_entry.get())
 		emp_name = str(emp_name_entry.get())
 		emp_designation = str(emp_designation_entry.get())
@@ -156,11 +168,13 @@ def submit(parameter):
 		leave_av = int(l_av) + noofdays
 		leave_bal = int(leave_entitlement) - int(leave_av)
 		
+		#CHECKING IF LEAVE BALANCE IS ZERO?
 		if leave_bal <0:
 			messagebox.showwarning('WARNING',"Insufficient Leave Balance!\nWill be treated as Leave Without Pay!")
 		insert_row()
 		clear("submit")
 
+#BACK BUTTON.. LOWERS CURRENT FRAME
 def back(parameter):
 
 	if parameter == "Emp_man":
@@ -184,7 +198,7 @@ def back(parameter):
 	if parameter == "Display_page":
 		Display_Page.lower()
 
-
+#CLEAR BUTTON.. RESETS THE VALUES IN ALL TEXTBOXES TO DEFAULT
 def clear(parameter):
 
 	if parameter == "emp_man":
@@ -247,12 +261,14 @@ def remove_emp():
 	Emp_Manage_Option = "DEL"
 	disable_fields()
 
+#SETS OPTIONMENU FOR EMPLOYEE TYPE TO EMPLOYEE TYPE INSTEAD OF SHOWING SELECTED VALUE
 def callback(*args):
 	emp_type_entry['state']=NORMAL
 	emp_type_entry_var.set(emp_type_var.get())
 	emp_type_var.set("Employee Type")
 	emp_type_entry['state']=DISABLED
 
+#DISABLES ALL TEXTBOXES TO PREVENT ENTRING OF DATA
 def disable_fields():			
 	add_emp_name_entry["state"] = DISABLED
 	add_designation_entry["state"] = DISABLED
@@ -263,6 +279,7 @@ def disable_fields():
 	aadhaar_entry["state"] = DISABLED
 	pan_card_entry["state"] = DISABLED
 
+#ENABLES ALL ENTRYBOXES TO ALLOW ENTERING DATA
 def enable_fields():
 	emp_id_man_entry["state"] = NORMAL
 	add_emp_name_entry["state"] = NORMAL
@@ -274,10 +291,12 @@ def enable_fields():
 	aadhaar_entry['state'] = NORMAL
 	pan_card_entry['state'] = NORMAL
 
+#DISPLAYING THE RECORDS IN A TABLE
 def display(parameter):
 	global df
 	global treev
 
+	#SETTING THE STYLE OF THE TABLE
 	style = ttk.Style()
 	style.theme_use('clam')
 	style.configure("mystyle.Treeview", font=('Calibri', 14), rowheight=50)
@@ -298,11 +317,15 @@ def display(parameter):
 		for col in cap_col:
 			df[col] = df[col].str.upper()
 
+		#CREATING THE TREEVIEW WIDGET TO DISPLAY TABLE
 		treev = ttk.Treeview(Emp_Man_Display_Page, columns=df.columns.values, selectmode='browse', style="mystyle.Treeview",show=['headings'])
+		
+		#SETTING THE SCROLLBARS
 		vsb = Scrollbar(Emp_Man_Display_Page, orient="vertical", command=treev.yview)
 		vsb.place(relx=0.981,rely=0.0,relheight=0.85)
 		hsb = Scrollbar(Emp_Man_Display_Page, orient="horizontal", command=treev.xview)
 		hsb.place(relx=0.005,rely=0.85,relwidth=0.97)
+		
 		treev.configure(xscrollcommand=hsb.set,yscrollcommand=vsb.set)
 		treev.place(relx=0.005, rely=0.0, relheight=0.85,relwidth=0.975)
 
@@ -346,12 +369,16 @@ def display(parameter):
 		for col in cap_col:
 			df[col] = df[col].str.upper()
 
+		#TREEVIEW WIDGET TO DISPLAY TABLE
 		treev = ttk.Treeview(Display_Page, columns=df.columns.values, selectmode='browse', style="mystyle.Treeview",show=['headings'])
+		
+		#SETTING SCROLLBARS
 		vsb = Scrollbar(Display_Page, orient="vertical", command=treev.yview)
 		vsb.place(relx=0.981,rely=0.0,relheight=0.85)
 		hsb = Scrollbar(Display_Page, orient="horizontal", command=treev.xview)
 		hsb.place(relx=0.005,rely=0.85,relwidth=0.97)
 		treev.configure(xscrollcommand=hsb.set,yscrollcommand=vsb.set)
+		
 		treev.place(relx=0.005, rely=0.0, relheight=0.85,relwidth=0.975)
 		treev['columns']=("0","1","2","3","4","5","6","7","8","9","10")
 
@@ -380,7 +407,8 @@ def display(parameter):
 		treev.column("10", minwidth=100,width=200)
 		
 		Update_Table("leave_details")
-    			
+
+#SETTING THE VALUES IN THE TABLE AS PER REQUIREMENTS    			
 def Update_Table(parameter):
 
 	rowLabels = df.index.tolist()
@@ -395,7 +423,8 @@ def Update_Table(parameter):
 			length = 11
 		for i in range(length):
 			treev.column(i,anchor="center")
-		
+	
+	#SORTING DATA AND DISPLAYING 	
 	def sorted_display(parameter):
 
 		treev.delete(*treev.get_children())
@@ -425,6 +454,7 @@ def Update_Table(parameter):
 		order_by = sort_type_var.get()
 		sorted_display(order_by)
 
+#EXTRACTING EMPLOYEE DETAILS AND AUTOFILLING SOME FIELDS
 def autofill(parameter):
 
 	if parameter == "leave_entry":
@@ -536,6 +566,7 @@ def autofill(parameter):
 			clear("emp_man")
 			disable_fields()
 
+#EXPORTING CUURENT TABLE TO AN EXCEL SPREADSHEET
 def exportExcel():
 	export_file_path = filedialog.asksaveasfilename(defaultextension='.xlsx')
 	df.to_excel (export_file_path, index = False, header=True)
@@ -586,6 +617,7 @@ Emp_management_page = Frame(root, bg="#c5d4e1")
 Emp_management_page.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
 Emp_management_page.lower()
 
+#BUTTONS ON EMPLOYEE MANAGEMENT PAGE
 add_emp_btn = Button(Emp_management_page, text="ADD EMPLOYEE", relief=RAISED, font=("Book Antiqua", 20, "bold"),fg="#2c1396",justify=CENTER, command=lambda: add_emp())
 add_emp_btn.place(width=300, relx=0.38, rely=0.15)
 edit_emp_btn = Button(Emp_management_page, text="EDIT DETAILS", relief=RAISED, font=("Book Antiqua", 20, "bold"),fg="#2c1396",justify=CENTER, command=lambda: edit_emp())
@@ -597,10 +629,12 @@ back_btn_emp_man.place(relx=0.05, rely=0.875, relwidth=0.14, relheight=0.1)
 display_emp_man = Button(Emp_management_page, text="DISPLAY", relief=RAISED, font=("Book Antiqua", 20, "bold"),fg="#2c1396", command=lambda: display("Emp_list"))
 display_emp_man.place(width=300, relx=0.38, rely=0.75)
 
+#EMPLOYEE DETAILS ENTRY PAGE
 Emp_entry_page = Frame(root, bg="#c5d4e1")
 Emp_entry_page.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
 Emp_entry_page.lower()
 
+#BUTTONS ON EMPLOYEE DETAILS ENTRY PAGE
 submit_btn_emp_entry = Button(Emp_entry_page, text="SUBMIT", relief=RAISED, font=("Book Antiqua", 12),justify=CENTER, command=lambda: submit("emp_man"))
 submit_btn_emp_entry.place(relwidth=0.14, relheight=0.1 ,relx=0.81, rely=0.875)
 back_btn_emp_entry = Button(Emp_entry_page, text="BACK", relief=RAISED, font=("Book Antiqua", 12), command=lambda: back("emp_entry"))
@@ -608,6 +642,7 @@ back_btn_emp_entry.place(relx=0.05, rely=0.875, relwidth=0.14, relheight=0.1)
 search_emp_entry = Button(Emp_entry_page, text="SEARCH", relief=RAISED, font=("Book Antiqua", 12), command=lambda: autofill('emp_man'))
 search_emp_entry.place(relwidth=0.14, relheight=0.1, relx=0.43, rely=0.875)
 
+#LABELS AND ENTRYBOXES ON EMPLOYEE DETAILS ENTRY WINDOW
 emp_type_var = StringVar()
 emp_type_var.set("Employee Type")
 emp_type_optns = ["Teaching","Non-Teaching","CLASS IV STAFF"]
@@ -732,6 +767,7 @@ Emp_Man_Display_Page.lower()
 back_btn_emp_man = Button(Emp_Man_Display_Page, text="BACK", relief=RAISED, font=("Book Antiqua",12), command=lambda: back("Emp_man_display"))
 back_btn_emp_man.place(relx=0.1, rely=0.895, relwidth=0.1, relheight=0.1)
 
+#SORTING OPTIONS
 emp_man_sort_var = StringVar()
 emp_man_sort_var.set("ID")
 sorting_parameters = ["ID","NAME","DESIGNATION","EMPLOYEE TYPE","DATE OF JOINING",
@@ -744,9 +780,11 @@ order_parameters = ["Ascending", "Descending"]
 emp_man_order_btn = OptionMenu(Emp_Man_Display_Page, emp_man_order_var, *order_parameters)
 emp_man_order_btn.place(relx=0.25, rely=0.895, relwidth=0.1, relheight=0.1)
 
+#REFRESH BUTTON
 emp_man_refresh_btn = Button(Emp_Man_Display_Page, text="REFRESH", font=("Book Antiqua", 12), state=NORMAL, command=lambda: Update_Table("emp_man_sort"))
 emp_man_refresh_btn.place(relx=0.55, rely=0.895, relwidth=0.1, relheight=0.1)
 
+#EXPORT TO EXCEL BUTTON
 export_excel_btn = Button(Emp_Man_Display_Page, text="EXPORT", font=("Book Antiqua", 12), state=NORMAL, command=lambda: exportExcel())
 export_excel_btn.place(relx=0.7, rely=0.895, relwidth=0.1, relheight=0.1)
 
@@ -755,6 +793,7 @@ Leave_management_page = Frame(root, bg="#c5d4e1")
 Leave_management_page.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
 Leave_management_page.lower()
 
+#BUTTONS FOR LEAVE ENTRY
 teaching_btn = Button(Leave_management_page, text="TEACHING", relief=RAISED, font=("Book Antiqua", 20, "bold"),justify=CENTER,
 	fg="#2c1396" ,command=lambda: frame_control("entry_tch"))
 teaching_btn.place(width=300, relx=0.38, rely=0.15)
@@ -889,6 +928,7 @@ Display_Page = Frame(root, bg="#c5d4e1")
 Display_Page.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
 Display_Page.lower()
 
+#SORTING OPTIONS
 sort_var = StringVar()
 sort_var.set("ID")
 sorting_parameters_leaves = ["ID","NAME","DESIGNATION","EMPLOYEE TYPE","Date Of Application", "Leave From", "Leave To", "No. of Days", "Leaves Availed", "Leave Balance"]
@@ -901,9 +941,11 @@ sort_type_optns = ["Ascending","Descending"]
 asc_desc_btn = OptionMenu(Display_Page, sort_type_var, *sort_type_optns)
 asc_desc_btn.place(relx=0.25, rely=0.895, relwidth=0.1, relheight=0.1)
 
+#EXPORT TO EXCEL BUTTON
 export_excel_btn = Button(Display_Page, text="EXPORT", font=("Book Antiqua", 12), state=NORMAL, command=lambda: exportExcel())
 export_excel_btn.place(relx=0.7, rely=0.895, relwidth=0.1, relheight=0.1)
 
+#REFRESH TABLE BUTTON
 refresh_btn = Button(Display_Page, text="REFRESH", font=("Book Antiqua", 12), state=NORMAL, command=lambda: Update_Table("leave_details_sort"))
 refresh_btn.place(relx=0.55, rely=0.895, relwidth=0.1, relheight=0.1)
 
@@ -913,6 +955,7 @@ back_btn_display.place(relx=0.1, rely=0.895, relwidth=0.1, relheight=0.1)
 #INITIALIZING CONNECTION TO DATABASE AND RUNNING MAINLOOP
 mydb = mysql.connector.connect(host = "localhost", user = user_id.get() , password = db_password.get(), database = "vanshaj")
 mycursor = mydb.cursor()
+#CHECKING IF TABLES NEEDED EXIST.. IF NOT THEN CREATING TABLES AUTOMATICALLY..
 mycursor.execute('create table if not exists empmanage(id int(4) not null, name varchar(25) not null, des varchar(40) not null, emp_type varchar(15) not null, doj date not null, qual varchar(40) not null, exp int(2) not null, salary int(7) not null, doli date, aadhaar char(12), pan_card char(10), doe date)')
 mycursor.execute('create table if not exists leave_details(emp_id int(4),name varchar(25),designation varchar(40),emp_type varchar(15),doa date,leave_frm date,leave_to date,noofdays int(3),leave_ent int(3),leave_av int(3),leave_bal int(3),reason_of_leave varchar(50))')
 root.mainloop()
