@@ -1,3 +1,4 @@
+#Copyright VANSHAJ BHATNAGAR -> Don't Scroll -> 1111 Lines of Code! Amazing huh? xD
 from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
@@ -12,8 +13,8 @@ import matplotlib.pyplot as plt
 import os
 
 root = Tk()
-root.title("Leave Management System")
-root.minsize(1080,640)
+root.title("Employee And Leave Management System")
+root.minsize(1280,640)
 root.geometry("1560x700")
 
 emp_data_col = ["ID","NAME","DESIGNATION","EMPLOYEE TYPE",
@@ -26,6 +27,7 @@ leave_entry_col = ["ID","NAME","DESIGNATION","EMPLOYEE TYPE",
 		"Leave Balance","REASON OF LEAVE"]
 data_col = ['NAME','Apr2020','May2020','Jun2020','Jul2020','Aug2020','Sep2020',
 			'Oct2020','Nov2020','Dec2020','Jan2021','Feb2021','Mar2021']
+
 try:
 	df_emp = pd.read_csv('empmanage.csv')
 except:	
@@ -92,7 +94,7 @@ def submit(parameter):
 	if parameter == "emp_man":
 
 		df_emp = pd.read_csv('empmanage.csv')
-		df_data = pd.read_csv('2020-21.csv')
+		df_data = pd.DataFrame(pd.read_csv('2020-21.csv'))
 		all_id = df_emp['ID'].tolist()
 
 		#GETTING THE VALUES FROM TEXTBOXES
@@ -130,10 +132,9 @@ def submit(parameter):
 						df_row = pd.DataFrame([[emp_id,emp_name,emp_des,emp_type,doj,qual,int(exp),int(salary),doli,str(aadhaar),pan_card,doe]],columns=emp_data_col)
 						df_emp = pd.concat([df_emp,df_row])
 						df_emp.reset_index(drop=True, inplace=True)						
-						df_row_data = pd.DataFrame(0,index=df_data.index, columns=data_col)
+						df_row_data = pd.Series(0,index=df_data.columns)
 						df_row_data['NAME']=emp_name
-						df_row_data.reset_index(drop=True, inplace=True)
-						df_data = pd.concat([df_data,df_row_data])
+						df_data = df_data.append(df_row_data,ignore_index=True)
 						df_data.reset_index(drop=True, inplace=True)
 						df_data.drop_duplicates(keep='first',inplace=True)
 						df_data.to_csv('2020-21.csv',columns=data_col,index=False)
@@ -226,53 +227,29 @@ def submit(parameter):
 		insert_row()
 		clear("submit")
 
-def lbm(start,end,emp_name):
-	
-	df_data = pd.read_csv('2020-21.csv')
-	df = df_data[df_data['NAME']==f'{emp_name}']
-	start = datetime.datetime.strptime(start,'%Y-%m-%d')
-	end = datetime.datetime.strptime(end,'%Y-%m-%d')
+#BACK BUTTON.. LOWERS CURRENT FRAME
+def back(parameter):
 
-	d = df.to_dict('list')
-	k = [x for x in d.keys()]
-	M_list = [0,4,5,6,7,8,9,10,11,12,1,2,3]
+	if parameter == "Emp_man":
+		clear("emp_man")
+		Emp_management_page.lower()
 
-	if (end.month >=4 and start.month>=4) or (end.month<4 and start.month<4):
-		months = [x for x in range(start.month,end.month+1)]
-		check = False
-		year = start.year
-	else:
-		months = [x%12 if x!=12 else x for x in range(start.month,end.month+13)]
-		check = True
-		year = end.year
+	if parameter == "Emp_man_display":
+		Emp_Man_Display_Page.lower()
 
-	if not check:
-		for i in months[1:len(months)-1]:
-			K = k[(M_list.index(i))]
-			d[K][0] += int(''.join(calendar.month(year,i)[-3:-1]))
-	else:
-		for i in months[1:len(months)-1]:
-			K = k[(M_list.index(i))]
-			print(d[K])
-			d[K][0] += int(''.join(calendar.month(year,i)[-3:-1]))
+	if parameter == "emp_entry":
+		clear("emp_man")
+		Emp_entry_page.lower()
 
-	if abs(end.month-start.month)>=1:
-		K = k[(M_list.index(start.month))]
-		d[K][0] += int(''.join(calendar.month(start.year,int(M_list.index(start.month)))[-3:-1]))-start.day+1
-		K = k[(M_list.index(end.month))]
-		d[K][0] += end.day
+	if parameter == "Leave_man_page":
+		Leave_management_page.lower()
 
-	else:
-		K = k[(M_list.index(start.month))]
-		d[K][0] += end.day-start.day+1
-	df = pd.DataFrame(d)
-	df.set_index(['NAME'],inplace=True,drop=True)
-	df_data.set_index(['NAME'],inplace=True)
-	df_data.drop(index=[f'{emp_name}'],axis=0,inplace=True)
-	df_data = pd.concat([df_data,df])
-	os.remove('2020-21.csv')
-	df_data.to_csv('2020-21.csv')
-	
+	if parameter == "Entry_page":
+		clear("submit")
+		Entry_page.lower()
+
+	if parameter == "Display_page":
+		Display_Page.lower()
 
 #EXTRACTING EMPLOYEE DETAILS AND AUTOFILLING SOME FIELDS
 def autofill(parameter):
@@ -352,6 +329,8 @@ def autofill(parameter):
 		global nod
 		global Entry_table
 
+		df_emp = pd.read_csv('empmanage.csv')
+
 		def set_values():
 			entered_name.set(name)
 			entered_designation.set(designation)
@@ -393,152 +372,6 @@ def autofill(parameter):
 			set_values()
 		else:
 			messagebox.showerror('ERROR','Invaid Employee Type!')
-
-def lbm(start,end,emp_name):
-	
-	df_data = pd.read_csv('2020-21.csv')
-	df = df_data[df_data['NAME']==f'{emp_name}']
-	start = datetime.datetime.strptime(start,'%Y-%m-%d')
-	end = datetime.datetime.strptime(end,'%Y-%m-%d')
-
-	d = df.to_dict('list')
-	k = [x for x in d.keys()]
-	M_list = [0,4,5,6,7,8,9,10,11,12,1,2,3]
-
-	if (end.month >=4 and start.month>=4) or (end.month<4 and start.month<4):
-		months = [x for x in range(start.month,end.month+1)]
-		check = False
-		year = start.year
-	else:
-		months = [x%12 if x!=12 else x for x in range(start.month,end.month+13)]
-		check = True
-		year = end.year
-
-	if not check:
-		for i in months[1:len(months)-1]:
-			K = k[(M_list.index(i))]
-			d[K][0] += int(''.join(calendar.month(year,i)[-3:-1]))
-	else:
-		for i in months[1:len(months)-1]:
-			K = k[(M_list.index(i))]
-			print(d[K])
-			d[K][0] += int(''.join(calendar.month(year,i)[-3:-1]))
-
-	if abs(end.month-start.month)>=1:
-		K = k[(M_list.index(start.month))]
-		d[K][0] += int(''.join(calendar.month(start.year,int(M_list.index(start.month)))[-3:-1]))-start.day+1
-		K = k[(M_list.index(end.month))]
-		d[K][0] += end.day
-
-	else:
-		K = k[(M_list.index(start.month))]
-		d[K][0] += end.day-start.day+1
-	df = pd.DataFrame(d)
-	df.set_index(['NAME'],inplace=True,drop=True)
-	df_data.set_index(['NAME'],inplace=True)
-	df_data.drop(index=[f'{emp_name}'],axis=0,inplace=True)
-	df_data = pd.concat([df_data,df])
-	os.remove('2020-21.csv')
-	df_data.to_csv('2020-21.csv')
-	return df
-
-
-#BACK BUTTON.. LOWERS CURRENT FRAME
-def back(parameter):
-
-	if parameter == "Emp_man":
-		clear("emp_man")
-		Emp_management_page.lower()
-
-	if parameter == "Emp_man_display":
-		Emp_Man_Display_Page.lower()
-
-	if parameter == "emp_entry":
-		clear("emp_man")
-		Emp_entry_page.lower()
-
-	if parameter == "Leave_man_page":
-		Leave_management_page.lower()
-
-	if parameter == "Entry_page":
-		clear("submit")
-		Entry_page.lower()
-
-	if parameter == "Display_page":
-		Display_Page.lower()
-
-#CLEAR BUTTON.. RESETS THE VALUES IN ALL TEXTBOXES TO DEFAULT
-def clear(parameter):
-
-	if parameter == "emp_man":
-		emp_type_entry['state']=NORMAL
-		emp_type_entry.delete(0,END)
-		emp_type_entry['state']=DISABLED
-		emp_id_man_entry.delete(0,END)
-		add_emp_name_entry.delete(0,END)
-		add_designation_entry.delete(0,END)
-		qual_entry.delete(0,END)
-		exp_entry.delete(0,END)
-		salary_entry.delete(0,END)
-		aadhaar_entry.delete(0,END)
-		pan_card_entry.delete(0,END)
-		doj_year_var.set("2020")
-		doli_year_var.set("")
-		doe_year_var.set("")
-		doj_month_var.set("1")
-		doli_month_var.set("")
-		doe_month_var.set("")
-		doj_day_var.set("1")
-		doli_day_var.set("")
-		doe_day_var.set("")
-
-	if parameter == "submit":
-		emp_id_entry.delete(0,END)
-		entered_name.set("")
-		entered_designation.set("")
-		entered_nod.set("")
-		reason_leave_entry.delete(0,END)
-		doa_year_var.set("2020")
-		leave_frm_year_var.set("2020")
-		leave_to_year_var.set("2020")
-		doa_month_var.set("1")
-		leave_frm_month_var.set("1")
-		leave_to_month_var.set("1")
-		doa_day_var.set("1")
-		leave_frm_day_var.set("1")
-		leave_to_day_var.set("1")
-		entered_lav.set("Leave Availed")
-		entered_lbal.set("Leave Balance")
-
-#DISABLES ALL TEXTBOXES TO PREVENT ENTRING OF DATA
-def disable_fields():			
-	add_emp_name_entry["state"] = DISABLED
-	add_designation_entry["state"] = DISABLED
-	emp_type_btn.configure(state=DISABLED)
-	qual_entry["state"] = DISABLED
-	exp_entry["state"] = DISABLED
-	salary_entry["state"] = DISABLED
-	aadhaar_entry["state"] = DISABLED
-	pan_card_entry["state"] = DISABLED
-
-#ENABLES ALL ENTRYBOXES TO ALLOW ENTERING DATA
-def enable_fields():
-	emp_id_man_entry["state"] = NORMAL
-	add_emp_name_entry["state"] = NORMAL
-	add_designation_entry["state"] = NORMAL
-	emp_type_btn.configure(state=NORMAL)
-	qual_entry['state'] = NORMAL
-	exp_entry['state'] = NORMAL
-	salary_entry['state'] = NORMAL
-	aadhaar_entry['state'] = NORMAL
-	pan_card_entry['state'] = NORMAL
-
-#SETS OPTIONMENU FOR EMPLOYEE TYPE TO EMPLOYEE TYPE INSTEAD OF SHOWING SELECTED VALUE
-def callback(*args):
-	emp_type_entry['state']=NORMAL
-	emp_type_entry_var.set(emp_type_var.get())
-	emp_type_var.set("Employee Type")
-	emp_type_entry['state']=DISABLED
 
 #DISPLAYING THE RECORDS IN A TABLE
 def display(parameter):
@@ -693,6 +526,128 @@ def Update_Table(parameter):
 		order_by = sort_type_var.get()
 		sorted_display(order_by)
 
+# This weird function adds monthly leaves to CSV file.
+def lbm(start,end,emp_name):
+	
+	df_data = pd.read_csv('2020-21.csv')
+	df = df_data[df_data['NAME']==f'{emp_name}']
+	start = datetime.datetime.strptime(start,'%Y-%m-%d')
+	end = datetime.datetime.strptime(end,'%Y-%m-%d')
+
+	d = df.to_dict('list')
+	k = [x for x in d.keys()]
+	M_list = [0,4,5,6,7,8,9,10,11,12,1,2,3]
+
+	if (end.month >=4 and start.month>=4) or (end.month<4 and start.month<4):
+		months = [x for x in range(start.month,end.month+1)]
+		check = False
+		year = start.year
+	else:
+		months = [x%12 if x!=12 else x for x in range(start.month,end.month+13)]
+		check = True
+		year = end.year
+
+	if not check:
+		for i in months[1:len(months)-1]:
+			K = k[(M_list.index(i))]
+			d[K][0] += int(''.join(calendar.month(year,i)[-3:-1]))
+	else:
+		for i in months[1:len(months)-1]:
+			K = k[(M_list.index(i))]
+			print(d[K])
+			d[K][0] += int(''.join(calendar.month(year,i)[-3:-1]))
+
+	if abs(end.month-start.month)>=1:
+		K = k[(M_list.index(start.month))]
+		d[K][0] += int(''.join(calendar.month(start.year,int(M_list.index(start.month)))[-3:-1]))-start.day+1
+		K = k[(M_list.index(end.month))]
+		d[K][0] += end.day
+
+	else:
+		K = k[(M_list.index(start.month))]
+		d[K][0] += end.day-start.day+1
+	df = pd.DataFrame(d)
+	df.set_index(['NAME'],inplace=True,drop=True)
+	df_data.set_index(['NAME'],inplace=True)
+	df_data.drop(index=[f'{emp_name}'],axis=0,inplace=True)
+	df_data = pd.concat([df_data,df])
+	os.remove('2020-21.csv')
+	df_data.to_csv('2020-21.csv')
+
+#CLEAR BUTTON.. RESETS THE VALUES IN ALL TEXTBOXES TO DEFAULT
+def clear(parameter):
+
+	if parameter == "emp_man":
+		emp_type_entry['state']=NORMAL
+		emp_type_entry.delete(0,END)
+		emp_type_entry['state']=DISABLED
+		emp_id_man_entry.delete(0,END)
+		add_emp_name_entry.delete(0,END)
+		add_designation_entry.delete(0,END)
+		qual_entry.delete(0,END)
+		exp_entry.delete(0,END)
+		salary_entry.delete(0,END)
+		aadhaar_entry.delete(0,END)
+		pan_card_entry.delete(0,END)
+		doj_year_var.set("2020")
+		doli_year_var.set("")
+		doe_year_var.set("")
+		doj_month_var.set("1")
+		doli_month_var.set("")
+		doe_month_var.set("")
+		doj_day_var.set("1")
+		doli_day_var.set("")
+		doe_day_var.set("")
+
+	if parameter == "submit":
+		emp_id_entry.delete(0,END)
+		entered_name.set("")
+		entered_designation.set("")
+		entered_nod.set("")
+		reason_leave_entry.delete(0,END)
+		doa_year_var.set("2020")
+		leave_frm_year_var.set("2020")
+		leave_to_year_var.set("2020")
+		doa_month_var.set("1")
+		leave_frm_month_var.set("1")
+		leave_to_month_var.set("1")
+		doa_day_var.set("1")
+		leave_frm_day_var.set("1")
+		leave_to_day_var.set("1")
+		entered_lav.set("Leave Availed")
+		entered_lbal.set("Leave Balance")
+
+#DISABLES ALL TEXTBOXES TO PREVENT ENTRING OF DATA
+def disable_fields():			
+	add_emp_name_entry["state"] = DISABLED
+	add_designation_entry["state"] = DISABLED
+	emp_type_btn.configure(state=DISABLED)
+	qual_entry["state"] = DISABLED
+	exp_entry["state"] = DISABLED
+	salary_entry["state"] = DISABLED
+	aadhaar_entry["state"] = DISABLED
+	pan_card_entry["state"] = DISABLED
+
+#ENABLES ALL ENTRYBOXES TO ALLOW ENTERING DATA
+def enable_fields():
+	emp_id_man_entry["state"] = NORMAL
+	add_emp_name_entry["state"] = NORMAL
+	add_designation_entry["state"] = NORMAL
+	emp_type_btn.configure(state=NORMAL)
+	qual_entry['state'] = NORMAL
+	exp_entry['state'] = NORMAL
+	salary_entry['state'] = NORMAL
+	aadhaar_entry['state'] = NORMAL
+	pan_card_entry['state'] = NORMAL
+
+#SETS OPTIONMENU FOR EMPLOYEE TYPE TO EMPLOYEE TYPE INSTEAD OF SHOWING SELECTED VALUE
+def callback(*args):
+	emp_type_entry['state']=NORMAL
+	emp_type_entry_var.set(emp_type_var.get())
+	emp_type_var.set("Employee Type")
+	emp_type_entry['state']=DISABLED
+
+#Graphs
 def graph(page):
 	top = Toplevel()
 	top.geometry('400x400')
@@ -961,7 +916,6 @@ doe_day_opt = OptionMenu(Emp_entry_page, doe_day_var, *doe_days)
 doe_year_opt.place(relx=0.83, rely=0.675, relwidth=0.05, relheight=0.1)
 doe_month_opt.place(relx=0.88, rely=0.675, relwidth=0.05, relheight=0.1)
 doe_day_opt.place(relx=0.93, rely=0.675, relwidth=0.05, relheight=0.1)
-
 
 #EMPLOYEE MANAGEMENT DISPLAY WINDOW
 Emp_Man_Display_Page = Frame(root, bg="#c5d4e1")
