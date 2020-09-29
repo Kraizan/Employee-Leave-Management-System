@@ -1,8 +1,8 @@
-#Copyright VANSHAJ BHATNAGAR -> Don't Scroll -> 1111 Lines of Code! Amazing huh? xD
+#Copyright VANSHAJ BHATNAGAR -> Don't Scroll -> 1180 Lines of Code! -> ENJOY!
+# Lines 3-49 -> Initialization , Lines 50 - 800 -> Functioning , Lines 801 - 1180 -> Frontend
 from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
-from tkinter import filedialog
 import csv
 import pandas as pd
 import datetime
@@ -140,6 +140,7 @@ def submit(parameter):
 						df_data.to_csv('2020-21.csv',columns=data_col,index=False)
 						df_emp.to_csv('empmanage.csv',columns=emp_data_col,index=False)
 						clear("emp_man")
+						messagebox.showinfo("Success", "Data Entered Successfully")
 			
 				except:
 					messagebox.showwarning("WARNING", "Could Not Add Details!")
@@ -164,6 +165,7 @@ def submit(parameter):
 					df_emp.loc[df_emp['ID']==emp_id,emp_data_col] = [emp_id,emp_name,emp_des,emp_type,doj,qual,int(exp),int(salary),doli,str(aadhaar),pan_card,doe]
 					df_emp.to_csv('empmanage.csv',columns=emp_data_col,index=False)
 					clear("emp_man")
+					messagebox.showinfo("Success", "Data Modified Successfully")
 				except:
 					messagebox.showwarning('WARNING',"Could Not Save Changes!")
 			else:
@@ -179,6 +181,7 @@ def submit(parameter):
 					df_emp.to_csv('empmanage.csv',columns=emp_data_col,index=False)
 					enable_fields()
 					clear("emp_man")
+					messagebox.showinfo("Success", "Data Deleted Successfully")
 					disable_fields()
 				except:
 					enable_fields()
@@ -235,6 +238,7 @@ def back(parameter):
 		Emp_management_page.lower()
 
 	if parameter == "Emp_man_display":
+		clear("emp_man")
 		Emp_Man_Display_Page.lower()
 
 	if parameter == "emp_entry":
@@ -508,7 +512,7 @@ def Update_Table(parameter):
 		rowLabels = df.index.tolist()
 		df.sort_values([sort_by],ascending=[order_by],inplace=True)
 		for i in range(len(df)):
-    			treev.insert('',i, text=rowLabels[i], values=df.iloc[i,:].tolist())
+				treev.insert('',i, text=rowLabels[i], values=df.iloc[i,:].tolist())
 
 	if parameter == "emp_man":
 		refresh("emp_man")
@@ -526,7 +530,30 @@ def Update_Table(parameter):
 		order_by = sort_type_var.get()
 		sorted_display(order_by)
 
-# This weird function adds monthly leaves to CSV file.
+def search():
+
+	def update_search(emp):
+		global df
+		df[df.values  == f"{emp}"]
+		treev.delete(*treev.get_children())
+		rowLabels = df.index.tolist()
+		df = df[df.values  == f"{emp}"]
+		for i in range(len(df)):
+				treev.insert('',i, text=rowLabels[i], values=df.iloc[i,:].tolist())
+		top.destroy()
+
+	top = Toplevel()
+	top.geometry("300x300")
+
+	name = StringVar()
+	name.set('')
+	emp_name_label = Label(top,text="Search Query", font=("Book Antiqua", 14), relief=GROOVE,justify=CENTER)
+	emp_name_label.place(relx=0.2,rely=0.18,relwidth=0.6,relheight=0.1)
+	emp_name = Entry(top,textvariable=name, font=("Book Antiqua", 14), relief=GROOVE,justify=CENTER)
+	emp_name.place(relx=0.2,rely=0.3,relwidth=0.6,relheight=0.1)
+	search_btn = Button(top,text='SEARCH',command=lambda: update_search(f'{name.get()}'))
+	search_btn.place(relx=0.4,rely=0.5,relwidth=0.2,relheight=0.1)
+
 def lbm(start,end,emp_name):
 	
 	df_data = pd.read_csv('2020-21.csv')
@@ -644,25 +671,39 @@ def enable_fields():
 def callback(*args):
 	emp_type_entry['state']=NORMAL
 	emp_type_entry_var.set(emp_type_var.get())
-	emp_type_var.set("Employee Type")
+	emp_type_var.set("*Employee Type")
 	emp_type_entry['state']=DISABLED
 
 #Graphs
 def graph(page):
+	global top
 	top = Toplevel()
 	top.geometry('400x400')
 	top.title('Data Visualization')
 	if page == 'empmanage':
-		pie = Button(top,text='Pie Chart',command=lambda: emp_types('pie')).pack()
-		bar = Button(top,text='Bar Chart',command=lambda: emp_types('bar')).pack()
+		pie = Button(top,text='Pie Chart',font=("Book Antiqua", 14), relief=GROOVE,justify=CENTER, command=lambda: emp_types('pie'))
+		pie.place(relx=0.3,rely=0.15,relwidth=0.4,relheight=0.1)
+		bar = Button(top,text='Bar Chart', font=("Book Antiqua", 14), relief=GROOVE,justify=CENTER,command=lambda: emp_types('bar'))
+		bar.place(relx=0.3,rely=0.35,relwidth=0.4,relheight=0.1)
+		line = Button(top,text='Line Chart', font=("Book Antiqua", 14), relief=GROOVE,justify=CENTER,command=lambda: emp_types('line'))
+		line.place(relx=0.3,rely=0.55,relwidth=0.4,relheight=0.1)
+		scatter = Button(top,text='Scatter Chart', font=("Book Antiqua", 14), relief=GROOVE,justify=CENTER,command=lambda: emp_types('scatter'))
+		scatter.place(relx=0.3,rely=0.75,relwidth=0.4,relheight=0.1)
 	elif page == 'leaves':
 		name = StringVar()
 		name.set('')
-		emp_name = Entry(top,textvariable=name).pack()
-		bar = Button(top,text='Bar Chart',command=lambda: emp_leaves(f'{name.get()}','bar')).pack()
-		pie = Button(top,text='Pie Chart',command=lambda: emp_leaves(f'{name.get()}','pie')).pack()
-		line = Button(top,text='Line Chart',command=lambda: emp_leaves(f'{name.get()}','line')).pack()
-		scatter = Button(top,text='Scatter Chart',command=lambda: emp_leaves(f'{name.get()}','scatter')).pack()
+		emp_name = Entry(top,textvariable=name, font=("Book Antiqua", 14), relief=GROOVE,justify=CENTER)
+		emp_name.place(relx=0.2,rely=0.2,relwidth=0.6,relheight=0.1)
+		emp_name_label = Label(top,text="Enter Employee Name", font=("Book Antiqua", 14), relief=GROOVE,justify=CENTER)
+		emp_name_label.place(relx=0.2,rely=0.08,relwidth=0.6,relheight=0.1)
+		bar = Button(top,text='Bar Chart', font=("Book Antiqua", 14), relief=GROOVE,justify=CENTER,command=lambda: emp_leaves(f'{name.get()}','bar'))
+		bar.place(relx=0.3,rely=0.4,relwidth=0.4,relheight=0.1)
+		pie = Button(top,text='Pie Chart', font=("Book Antiqua", 14), relief=GROOVE,justify=CENTER,command=lambda: emp_leaves(f'{name.get()}','pie'))
+		pie.place(relx=0.3,rely=0.55,relwidth=0.4,relheight=0.1)
+		line = Button(top,text='Line Chart', font=("Book Antiqua", 14), relief=GROOVE,justify=CENTER,command=lambda: emp_leaves(f'{name.get()}','line'))
+		line.place(relx=0.3,rely=0.7,relwidth=0.4,relheight=0.1)
+		scatter = Button(top,text='Scatter Chart', font=("Book Antiqua", 14), relief=GROOVE,justify=CENTER,command=lambda: emp_leaves(f'{name.get()}','scatter'))
+		scatter.place(relx=0.3,rely=0.85,relwidth=0.4,relheight=0.1)
 
 def emp_types(graph):
 	df = pd.read_csv('empmanage.csv')
@@ -676,6 +717,10 @@ def emp_types(graph):
 		pie('type',x_label,y_label)
 	elif graph == 'bar':
 		bar('type',x_label,y_label)
+	elif graph == 'line':
+		line('type',x_label,y_label)
+	elif graph == 'scatter':
+		scatter('type',x_label,y_label)
 
 def emp_leaves(emp,graph):
 	df = pd.read_csv('2020-21.csv')
@@ -702,10 +747,12 @@ def emp_leaves(emp,graph):
 		scatter(emp,x_label,y_label)
 
 def pie(graph,x_label,y_label):
+	top.destroy()
+
 	if graph == 'type':
 		plt.figure(figsize=(10,10))
 		plt.pie(y_label, labels=x_label, autopct='%1.1f%%',
-		        shadow=True, startangle=90)
+				shadow=True, startangle=90)
 		plt.axis('equal')
 		plt.title('Employee Types',fontsize=20)
 		plt.show()
@@ -713,12 +760,14 @@ def pie(graph,x_label,y_label):
 	else:
 		plt.figure(figsize=(10,10))
 		plt.pie(y_label, labels=x_label, autopct='%1.1f%%',
-		        shadow=True, startangle=90)
+				shadow=True, startangle=90)
 		plt.axis('equal')
 		plt.title('Leave Details',fontsize=20)
 		plt.show()
 
 def bar(graph,x_label,y_label):
+	top.destroy()
+
 	if graph == 'type':
 		plt.figure(figsize=(10,10))
 		plt.bar(x_label, y_label, width=0.5, align='center')
@@ -736,12 +785,14 @@ def bar(graph,x_label,y_label):
 		plt.show()
 
 def line(graph,x_label,y_label):
+	top.destroy()
 
 	plt.figure(figsize=(10,10))
 	plt.plot(x_label,y_label)
 	plt.show()
 
 def scatter(graph,x_label,y_label):
+	top.destroy()
 
 	plt.figure(figsize=(10,10))
 	plt.scatter(x_label,y_label)
@@ -756,6 +807,7 @@ titleLabel.place(relwidth=1, relheight=0.25)
 dev_Label = Label(root, text="developed by - Vanshaj Bhatnagar  ", font=("Ariel Black", 14, "italic"),
 	pady=10, justify=LEFT, relief=RAISED , anchor=E, bg="#9cc6d2")
 dev_Label.place(relx=0, rely=0.9, relwidth=1, relheight=0.1)
+
 
 #HOME PAGE
 Home_Page = Frame(root, bg="#c5d4e1")
@@ -803,7 +855,7 @@ search_emp_entry.place(relwidth=0.14, relheight=0.1, relx=0.43, rely=0.875)
 
 #LABELS AND ENTRYBOXES ON EMPLOYEE DETAILS ENTRY WINDOW
 emp_type_var = StringVar()
-emp_type_var.set("Employee Type")
+emp_type_var.set("*Employee Type")
 emp_type_optns = ["Teaching","Non-Teaching","CLASS IV STAFF"]
 emp_type_btn = OptionMenu(Emp_entry_page, emp_type_var, *emp_type_optns)
 emp_type_btn.place(relx=0.02, rely=0.225, relwidth=0.15, relheight=0.1)
@@ -813,19 +865,19 @@ emp_type_entry_var = StringVar()
 emp_type_entry = Entry(Emp_entry_page, textvariable=emp_type_entry_var, font=("Book Antiqua", 12), justify=CENTER,state=DISABLED)
 emp_type_entry.place(relx=0.175, rely=0.225, relwidth=0.15, relheight=0.1)
 
-emp_id_man_label = Label(Emp_entry_page, text="Employee ID : ", font=("Book Antiqua", 12), relief=GROOVE,justify=CENTER)
+emp_id_man_label = Label(Emp_entry_page, text="*Employee ID : ", font=("Book Antiqua", 12), relief=GROOVE,justify=CENTER)
 emp_id_man_label.place(relx=0.02, rely=0.375, relwidth=0.15, relheight=0.1)
 emp_id_man_entry = Entry(Emp_entry_page, font=("Book Antiqua", 12), justify=CENTER, state=NORMAL)
 emp_id_man_entry.place(relx=0.175, rely=0.375, relwidth=0.15, relheight=0.1)
 
 emp_man_name_var = StringVar()
-add_emp_name_label = Label(Emp_entry_page, text="Employee Name : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
+add_emp_name_label = Label(Emp_entry_page, text="*Employee Name : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
 add_emp_name_label.place(relx=0.02, rely=0.525, relwidth=0.15, relheight=0.1)
 add_emp_name_entry = Entry(Emp_entry_page, textvariable=emp_man_name_var,font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
 add_emp_name_entry.place(relx=0.175, rely=0.525, relwidth=0.15, relheight=0.1)
 
 emp_man_des_var = StringVar()
-add_designation_label = Label(Emp_entry_page, text="Designation : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
+add_designation_label = Label(Emp_entry_page, text="*Designation : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
 add_designation_label.place(relx=0.02, rely=0.675, relwidth=0.15, relheight=0.1)
 add_designation_entry = Entry(Emp_entry_page,textvariable=emp_man_des_var, font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
 add_designation_entry.place(relx=0.175, rely=0.675, relwidth=0.15, relheight=0.1)
@@ -840,7 +892,7 @@ doj_years = {year for year in range(2000,2031)}
 doj_months = {month for month in range(1,13)}
 doj_days = {day for day in range(1,32)}
 
-doj_label = Label(Emp_entry_page, text="Date of Joining : ", font=("Book Antiqua", 12), justify=CENTER)
+doj_label = Label(Emp_entry_page, text="*Date of Joining : ", font=("Book Antiqua", 12), justify=CENTER)
 doj_label.place(relx=0.35, rely=0.225, relwidth=0.15, relheight=0.1)
 doj_year_opt = OptionMenu(Emp_entry_page, doj_year_var, *doj_years)
 doj_month_opt = OptionMenu(Emp_entry_page, doj_month_var, *doj_months)
@@ -850,19 +902,19 @@ doj_month_opt.place(relx=0.555, rely=0.225, relwidth=0.05, relheight=0.1)
 doj_day_opt.place(relx=0.605, rely=0.225, relwidth=0.05, relheight=0.1)
 
 emp_man_qual_var = StringVar()
-qual_label = Label(Emp_entry_page, text="Qualification\n(Year of Completion) : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
+qual_label = Label(Emp_entry_page, text="*Qualification\n(Year of Completion) : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
 qual_label.place(relx=0.35, rely=0.375, relwidth=0.15, relheight=0.1)
 qual_entry = Entry(Emp_entry_page,textvariable=emp_man_qual_var, font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
 qual_entry.place(relx=0.505, rely=0.375, relwidth=0.15, relheight=0.1)
 
 emp_man_exp_var = StringVar()
-exp_label = Label(Emp_entry_page, text="Experience\n(No. of Years) : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
+exp_label = Label(Emp_entry_page, text="*Experience\n(No. of Years) : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
 exp_label.place(relx=0.35, rely=0.525, relwidth=0.15, relheight=0.1)
 exp_entry = Entry(Emp_entry_page, textvariable=emp_man_exp_var,font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
 exp_entry.place(relx=0.505, rely=0.525, relwidth=0.15, relheight=0.1)
 
 emp_man_sal_var = StringVar()
-salary_label = Label(Emp_entry_page, text="Current Salary : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
+salary_label = Label(Emp_entry_page, text="*Current Salary : ", font=("Book Antiqua", 12), relief=GROOVE, justify=CENTER)
 salary_label.place(relx=0.35, rely=0.675, relwidth=0.15, relheight=0.1)
 salary_entry = Entry(Emp_entry_page, textvariable=emp_man_sal_var,font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
 salary_entry.place(relx=0.505, rely=0.675, relwidth=0.15, relheight=0.1)
@@ -923,7 +975,7 @@ Emp_Man_Display_Page.place(relx=0, rely=0.25, relheight=0.65, relwidth=1)
 Emp_Man_Display_Page.lower()
 
 back_btn_emp_man = Button(Emp_Man_Display_Page, text="BACK", relief=RAISED, font=("Book Antiqua",12), command=lambda: back("Emp_man_display"))
-back_btn_emp_man.place(relx=0.1, rely=0.895, relwidth=0.1, relheight=0.1)
+back_btn_emp_man.place(relx=0.06, rely=0.895, relwidth=0.1, relheight=0.1)
 
 #SORTING OPTIONS
 emp_man_sort_var = StringVar()
@@ -931,19 +983,27 @@ emp_man_sort_var.set("ID")
 sorting_parameters = ["ID","NAME","DESIGNATION","EMPLOYEE TYPE","DATE OF JOINING",
 			"EXPERIENCE","SALARY","DATE OF LAST INCREMENT","DATE OF EXIT"]
 emp_man_sort_btn = OptionMenu(Emp_Man_Display_Page, emp_man_sort_var, *sorting_parameters)
-emp_man_sort_btn.place(relx=0.4, rely=0.895, relwidth=0.1, relheight=0.1)
+emp_man_sort_btn.place(relx=0.32, rely=0.895, relwidth=0.1, relheight=0.1)
 emp_man_order_var = StringVar()
 emp_man_order_var.set("Sort By")
 order_parameters = ["Ascending", "Descending"]
 emp_man_order_btn = OptionMenu(Emp_Man_Display_Page, emp_man_order_var, *order_parameters)
-emp_man_order_btn.place(relx=0.25, rely=0.895, relwidth=0.1, relheight=0.1)
+emp_man_order_btn.place(relx=0.19, rely=0.895, relwidth=0.1, relheight=0.1)
+
+#SEARCH BUTTON TO FIND EMPLOYEES WITH PARTICULAR DETAIL
+search_emp_btn = Button(Emp_Man_Display_Page, text="SEARCH", font=("Book Antiqua", 12), state=NORMAL, command=lambda: search())
+search_emp_btn.place(relx=0.58, rely=0.895, relwidth=0.1, relheight=0.1)
+
+#RESET BUTTON
+emp_man_reset_btn = Button(Emp_Man_Display_Page, text="RESET", font=("Book Antiqua", 12), state=NORMAL, command=lambda: display("Emp_list"))
+emp_man_reset_btn.place(relx=0.71, rely=0.895, relwidth=0.1, relheight=0.1)
 
 #REFRESH BUTTON
 emp_man_refresh_btn = Button(Emp_Man_Display_Page, text="REFRESH", font=("Book Antiqua", 12), state=NORMAL, command=lambda: Update_Table("emp_man_sort"))
-emp_man_refresh_btn.place(relx=0.55, rely=0.895, relwidth=0.1, relheight=0.1)
+emp_man_refresh_btn.place(relx=0.45, rely=0.895, relwidth=0.1, relheight=0.1)
 
 emp_man_graphs_btn = Button(Emp_Man_Display_Page, text="Show Graphs", font=("Book Antiqua", 12), state=NORMAL, command=lambda: graph('empmanage'))
-emp_man_graphs_btn.place(relx=0.75, rely=0.895, relwidth=0.1, relheight=0.1)
+emp_man_graphs_btn.place(relx=0.84, rely=0.895, relwidth=0.1, relheight=0.1)
 
 #LEAVE MANAGEMENT PAGE
 Leave_management_page = Frame(root, bg="#c5d4e1")
@@ -979,7 +1039,7 @@ autofill_btn = Button(Entry_page, text="AUTOFILL", font=("Book Antiqua", 12), st
 autofill_btn.place(relx=0.6, rely=0.85, relwidth=0.2, relheight=0.1)
 
 back_btn_entry = Button(Entry_page, text="BACK", relief=RAISED, font=("Book Antiqua", 12), command=lambda: back("Entry_page"))
-back_btn_entry.place(relx=0.1, rely=0.895, relwidth=0.1, relheight=0.1)
+back_btn_entry.place(relx=0.1, rely=0.85, relwidth=0.1, relheight=0.1)
 
 #ENTRY PAGE LABELS AND TEXTBOXES
 doa_year_var = StringVar()
@@ -1012,24 +1072,24 @@ leave_to_years = {year for year in range(2000,2031)}
 leave_to_months = {month for month in range(1,13)}
 leave_to_days = {day for day in range(1,32)}
 
-emp_id_label = Label(Entry_page, text="Employee ID : ", font=("Book Antiqua", 12), justify=CENTER)
+emp_id_label = Label(Entry_page, text="*Employee ID : ", font=("Book Antiqua", 12), justify=CENTER)
 emp_id_label.place(relx=0.115, rely=0.2, relwidth=0.15, relheight=0.1)
 emp_id_entry = Entry(Entry_page, font=("Book Antiqua", 12), justify=CENTER)
 emp_id_entry.place(relx=0.28, rely=0.2, relwidth=0.2, relheight=0.1)
 
 entered_name = StringVar()
-emp_name_label = Label(Entry_page, text="Name : ", font=("Book Antiqua", 12), justify=CENTER)
+emp_name_label = Label(Entry_page, text="*Name : ", font=("Book Antiqua", 12), justify=CENTER)
 emp_name_label.place(relx=0.115, rely=0.35, relwidth=0.15, relheight=0.1)
 emp_name_entry = Entry(Entry_page, textvariable=entered_name, font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
 emp_name_entry.place(relx=0.28, rely=0.35, relwidth=0.2, relheight=0.1)
 
 entered_designation = StringVar()
-emp_designation_label = Label(Entry_page, text="Designation : ", font=("Book Antiqua", 12), justify=CENTER)
+emp_designation_label = Label(Entry_page, text="*Designation : ", font=("Book Antiqua", 12), justify=CENTER)
 emp_designation_label.place(relx=0.115, rely=0.5, relwidth=0.15, relheight=0.1)
 emp_designation_entry = Entry(Entry_page,textvariable=entered_designation, font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
 emp_designation_entry.place(relx=0.28, rely=0.5, relwidth=0.2, relheight=0.1)
 
-emp_doa_label = Label(Entry_page, text="Date of Application : ", font=("Book Antiqua", 12), justify=CENTER)
+emp_doa_label = Label(Entry_page, text="*Date of Application : ", font=("Book Antiqua", 12), justify=CENTER)
 emp_doa_label.place(relx=0.115, rely=0.65, relwidth=0.15, relheight=0.1)
 doa_year_opt = OptionMenu(Entry_page, doa_year_var, *doa_years)
 doa_month_opt = OptionMenu(Entry_page, doa_month_var, *doa_months)
@@ -1038,7 +1098,7 @@ doa_year_opt.place(relx=0.28, rely=0.65, relwidth=0.06, relheight=0.1)
 doa_month_opt.place(relx=0.35, rely=0.65, relwidth=0.06, relheight=0.1)
 doa_day_opt.place(relx=0.42, rely=0.65, relwidth=0.06, relheight=0.1)
 
-leave_frm_label = Label(Entry_page, text="Leave From : ", font=("Book Antiqua", 12), justify=CENTER)
+leave_frm_label = Label(Entry_page, text="*Leave From : ", font=("Book Antiqua", 12), justify=CENTER)
 leave_frm_label.place(relx=0.515, rely=0.2, relwidth=0.15, relheight=0.1)
 leave_frm_year_opt = OptionMenu(Entry_page, leave_frm_year_var, *leave_frm_years)
 leave_frm_month_opt = OptionMenu(Entry_page, leave_frm_month_var, *leave_frm_months)
@@ -1047,7 +1107,7 @@ leave_frm_year_opt.place(relx=0.68, rely=0.2, relwidth=0.06, relheight=0.1)
 leave_frm_month_opt.place(relx=0.75, rely=0.2, relwidth=0.06, relheight=0.1)
 leave_frm_day_opt.place(relx=0.82, rely=0.2, relwidth=0.06, relheight=0.1)
 
-leave_to_label = Label(Entry_page, text="Leave To : ", font=("Book Antiqua", 12), justify=CENTER)
+leave_to_label = Label(Entry_page, text="*Leave To : ", font=("Book Antiqua", 12), justify=CENTER)
 leave_to_label.place(relx=0.515, rely=0.35, relwidth=0.15, relheight=0.1)
 leave_to_year_opt = OptionMenu(Entry_page, leave_to_year_var, *leave_to_years)
 leave_to_month_opt = OptionMenu(Entry_page, leave_to_month_var, *leave_to_months)
@@ -1057,7 +1117,7 @@ leave_to_month_opt.place(relx=0.75, rely=0.35, relwidth=0.06, relheight=0.1)
 leave_to_day_opt.place(relx=0.82, rely=0.35, relwidth=0.06, relheight=0.1)
 
 entered_nod = StringVar()
-no_of_days_label = Label(Entry_page, text="No. Of Days : ", font=("Book Antiqua", 12), justify=CENTER)
+no_of_days_label = Label(Entry_page, text="*No. Of Days : ", font=("Book Antiqua", 12), justify=CENTER)
 no_of_days_label.place(relx=0.515, rely=0.5, relwidth=0.15, relheight=0.1)
 no_of_days_entry = Entry(Entry_page, textvariable=entered_nod, font=("Book Antiqua", 12), justify=CENTER, state=DISABLED)
 no_of_days_entry.place(relx=0.68, rely=0.5, relwidth=0.2, relheight=0.1)
@@ -1090,22 +1150,31 @@ sort_var = StringVar()
 sort_var.set("ID")
 sorting_parameters_leaves = ["ID","NAME","DESIGNATION","EMPLOYEE TYPE","Date Of Application", "Leave From", "Leave To", "No. of Days", "Leaves Availed", "Leave Balance"]
 sort_btn = OptionMenu(Display_Page, sort_var, *sorting_parameters_leaves)
-sort_btn.place(relx=0.4, rely=0.895, relwidth=0.1, relheight=0.1)
+sort_btn.place(relx=0.32, rely=0.895, relwidth=0.1, relheight=0.1)
 
 sort_type_var = StringVar()
 sort_type_var.set("Ascending")
 sort_type_optns = ["Ascending","Descending"]
 asc_desc_btn = OptionMenu(Display_Page, sort_type_var, *sort_type_optns)
-asc_desc_btn.place(relx=0.25, rely=0.895, relwidth=0.1, relheight=0.1)
+asc_desc_btn.place(relx=0.19, rely=0.895, relwidth=0.1, relheight=0.1)
 
 #REFRESH TABLE BUTTON
 refresh_btn = Button(Display_Page, text="REFRESH", font=("Book Antiqua", 12), state=NORMAL, command=lambda: Update_Table("leave_details_sort"))
-refresh_btn.place(relx=0.55, rely=0.895, relwidth=0.1, relheight=0.1)
+refresh_btn.place(relx=0.45, rely=0.895, relwidth=0.1, relheight=0.1)
+
+#SEARCH BUTTON TO FIND EMPLOYEES WITH PARTICULAR DETAIL
+search_emp_btn = Button(Display_Page, text="SEARCH", font=("Book Antiqua", 12), state=NORMAL, command=lambda: search())
+search_emp_btn.place(relx=0.58, rely=0.895, relwidth=0.1, relheight=0.1)
+
+#RESET BUTTON
+emp_man_reset_btn = Button(Display_Page, text="RESET", font=("Book Antiqua", 12), state=NORMAL, command=lambda: display("leaves_entered"))
+emp_man_reset_btn.place(relx=0.71, rely=0.895, relwidth=0.1, relheight=0.1)
 
 leaves_graphs_btn = Button(Display_Page, text="Show Graphs", font=("Book Antiqua", 12), state=NORMAL, command=lambda: graph('leaves'))
-leaves_graphs_btn.place(relx=0.75, rely=0.895, relwidth=0.1, relheight=0.1)
+leaves_graphs_btn.place(relx=0.84, rely=0.895, relwidth=0.1, relheight=0.1)
 
 back_btn_display = Button(Display_Page, text="BACK", relief=RAISED, font=("Book Antiqua", 12), command=lambda: back("Display_page"))
-back_btn_display.place(relx=0.1, rely=0.895, relwidth=0.1, relheight=0.1)
+back_btn_display.place(relx=0.06, rely=0.895, relwidth=0.1, relheight=0.1)
 
 root.mainloop()
+#CONGRATULATIONS! You've successfully reached the end of the code! (^_^) Hope you enjoyed!
